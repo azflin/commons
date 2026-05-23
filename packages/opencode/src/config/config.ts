@@ -455,11 +455,13 @@ export const layer = Layer.effect(
                   $schema: "https://opencode.ai/config.json",
                   model: "opencode/big-pickle",
                   provider: {
-                    "internet-ai": {
-                      name: "internet ai",
+                    commons: {
+                      name: "commons",
                       npm: "@ai-sdk/openai-compatible",
-                      env: ["INTERNET_AI_KEY"],
-                      options: { baseURL: "https://openrouter.ai/api/v1" },
+                      env: ["COMMONS_KEY"],
+                      options: {
+                        baseURL: "http://localhost:8787/v1",
+                      },
                       models: {
                         "anthropic/claude-sonnet-4.5": { name: "Claude Sonnet 4.5" },
                         "openai/gpt-4o-mini": { name: "GPT-4o mini" },
