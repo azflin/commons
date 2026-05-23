@@ -994,7 +994,22 @@ export class InitError extends Schema.TaggedErrorClass<InitError>()("ProviderIni
   }
 }
 
-export type Error = ModelNotFoundError | InitError
+export class NoProvidersError extends Schema.TaggedErrorClass<NoProvidersError>()("ProviderNoProvidersError", {}) {
+  static isInstance(input: unknown): input is NoProvidersError {
+    return input instanceof NoProvidersError
+  }
+}
+
+export class NoModelsError extends Schema.TaggedErrorClass<NoModelsError>()("ProviderNoModelsError", {
+  providerID: ProviderID,
+}) {
+  static isInstance(input: unknown): input is NoModelsError {
+    return input instanceof NoModelsError
+  }
+}
+
+export type DefaultModelError = ModelNotFoundError | NoProvidersError | NoModelsError
+export type Error = ModelNotFoundError | InitError | NoProvidersError | NoModelsError
 
 export interface Interface {
   readonly list: () => Effect.Effect<Record<ProviderID, Info>>
@@ -1006,7 +1021,7 @@ export interface Interface {
     query: string[],
   ) => Effect.Effect<{ providerID: ProviderID; modelID: string } | undefined>
   readonly getSmallModel: (providerID: ProviderID) => Effect.Effect<Model | undefined>
-  readonly defaultModel: () => Effect.Effect<{ providerID: ProviderID; modelID: ModelID }>
+  readonly defaultModel: () => Effect.Effect<{ providerID: ProviderID; modelID: ModelID }, DefaultModelError>
 }
 
 interface State {
@@ -1820,19 +1835,13 @@ export const layer = Layer.effect(
         return { providerID: entry.providerID, modelID: entry.modelID }
       }
 
-      const providers = Object.values(s.providers).filter(
-        (p) => !cfg.provider || Object.keys(cfg.provider).includes(p.id),
-      )
-      if (providers.length === 0) throw new Error("no providers found")
-      const candidates = providers.flatMap((p) =>
-        Object.values(p.models).map((m) => ({ providerID: p.id, model: m })),
-      )
-      const [best] = sort(candidates.map((c) => c.model))
-      if (!best) throw new Error("no models found")
-      const winner = candidates.find((c) => c.model.id === best.id)!
+      const provider = Object.values(s.providers).find((p) => !cfg.provider || Object.keys(cfg.provider).includes(p.id))
+      if (!provider) return yield* new NoProvidersError()
+      const [model] = sort(Object.values(provider.models))
+      if (!model) return yield* new NoModelsError({ providerID: provider.id })
       return {
-        providerID: winner.providerID,
-        modelID: winner.model.id,
+        providerID: provider.id,
+        modelID: model.id,
       }
     })
 
@@ -1852,7 +1861,7 @@ export const defaultLayer = Layer.suspend(() =>
   ),
 )
 
-const priority = ["gpt-5", "claude-sonnet-4", "gemini-3-pro", "big-pickle"]
+const priority = ["gpt-5", "claude-sonnet-4", "big-pickle", "gemini-3-pro"]
 export function sort<T extends { id: string }>(models: T[]) {
   return sortBy(
     models,
