@@ -450,7 +450,27 @@ export const layer = Layer.effect(
           yield* fs
             .writeWithDirs(
               file,
-              JSON.stringify({ $schema: "https://opencode.ai/config.json", model: "opencode/big-pickle" }, null, 2),
+              JSON.stringify(
+                {
+                  $schema: "https://opencode.ai/config.json",
+                  model: "opencode/big-pickle",
+                  provider: {
+                    "internet-ai": {
+                      name: "internet ai",
+                      npm: "@ai-sdk/openai-compatible",
+                      env: ["INTERNET_AI_KEY"],
+                      options: { baseURL: "https://openrouter.ai/api/v1" },
+                      models: {
+                        "anthropic/claude-sonnet-4.5": { name: "Claude Sonnet 4.5" },
+                        "openai/gpt-4o-mini": { name: "GPT-4o mini" },
+                        "deepseek/deepseek-chat": { name: "DeepSeek Chat" },
+                      },
+                    },
+                  },
+                },
+                null,
+                2,
+              ),
             )
             .pipe(Effect.catch(() => Effect.void))
         }
