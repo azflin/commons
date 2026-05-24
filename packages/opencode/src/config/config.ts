@@ -460,7 +460,7 @@ export const layer = Layer.effect(
                       npm: "@ai-sdk/openai-compatible",
                       env: ["COMMONS_KEY"],
                       options: {
-                        baseURL: "http://localhost:8787/v1",
+                        baseURL: "https://gateway.defenseoftheagents.com/v1",
                       },
                       models: {
                         "anthropic/claude-sonnet-4.5": { name: "Claude Sonnet 4.5" },

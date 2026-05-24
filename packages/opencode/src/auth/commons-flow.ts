@@ -3,7 +3,7 @@
  * the forced-auth TUI route. Pure helpers — no CLI/Effect/Prompt imports.
  */
 
-const DEFAULT_GATEWAY_URL = "http://localhost:8787"
+const DEFAULT_GATEWAY_URL = "https://gateway.defenseoftheagents.com"
 
 const SUCCESS_HTML = `<!doctype html>
 <html lang="en">
@@ -72,7 +72,7 @@ export function startCommonsAuthFlow(): CommonsAuthFlow {
     },
   })
 
-  const port = server.port
+  const port: any = server.port
   const authUrl = `${gatewayUrl}/cli-login?port=${port}&state=${encodeURIComponent(state)}`
 
   return {
