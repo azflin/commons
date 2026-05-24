@@ -3,7 +3,7 @@
  * the forced-auth TUI route. Pure helpers — no CLI/Effect/Prompt imports.
  */
 
-const DEFAULT_GATEWAY_URL = "https://gateway.defenseoftheagents.com"
+const DEFAULT_GATEWAY_URL = "http://localhost:8787"
 
 const SUCCESS_HTML = `<!doctype html>
 <html lang="en">
