@@ -2,8 +2,7 @@
  * Browser-redirect auth flow shared by the `commons login` CLI command and
  * the forced-auth TUI route. Pure helpers — no CLI/Effect/Prompt imports.
  */
-
-const DEFAULT_GATEWAY_URL = "http://localhost:8787"
+import { COMMONS_GATEWAY_URL } from "../commons/const"
 
 const SUCCESS_HTML = `<!doctype html>
 <html lang="en">
@@ -42,7 +41,7 @@ export interface CommonsAuthFlow {
 }
 
 export function startCommonsAuthFlow(): CommonsAuthFlow {
-  const gatewayUrl = process.env.COMMONS_GATEWAY_URL ?? DEFAULT_GATEWAY_URL
+  const gatewayUrl = COMMONS_GATEWAY_URL
   const state = crypto.randomUUID()
 
   let resolveKey!: (k: string) => void

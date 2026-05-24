@@ -1,5 +1,6 @@
 import * as Log from "@opencode-ai/core/util/log"
 import { serviceUse } from "@opencode-ai/core/effect/service-use"
+import { COMMONS_GATEWAY_URL } from "../commons/const"
 import path from "path"
 import { pathToFileURL } from "url"
 import os from "os"
@@ -460,7 +461,7 @@ export const layer = Layer.effect(
                       npm: "@ai-sdk/openai-compatible",
                       env: ["COMMONS_KEY"],
                       options: {
-                        baseURL: "http://localhost:8787/v1",
+                        baseURL: `${COMMONS_GATEWAY_URL}/v1`,
                       },
                       models: {
                         "anthropic/claude-sonnet-4.5": { name: "Claude Sonnet 4.5" },
