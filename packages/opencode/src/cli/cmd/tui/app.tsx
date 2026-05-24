@@ -45,6 +45,10 @@ import { DialogConsoleOrg } from "@tui/component/dialog-console-org"
 import { ThemeProvider, useTheme } from "@tui/context/theme"
 import { Home } from "@tui/routes/home"
 import { Session } from "@tui/routes/session"
+import { Auth } from "@tui/routes/auth"
+import nodeFs from "fs"
+import nodePath from "path"
+import { Global } from "@opencode-ai/core/global"
 import { PromptHistoryProvider } from "./component/prompt/history"
 import { FrecencyProvider } from "./component/prompt/frecency"
 import { PromptStashProvider } from "./component/prompt/stash"
@@ -163,6 +167,16 @@ function errorMessage(error: unknown) {
   return FormatUnknownError(error)
 }
 
+function hasCommonsCreds(): boolean {
+  if (process.env.COMMONS_KEY) return true
+  try {
+    const data = JSON.parse(nodeFs.readFileSync(nodePath.join(Global.Path.data, "auth.json"), "utf8"))
+    return !!data?.commons
+  } catch {
+    return false
+  }
+}
+
 export function tui(input: {
   url: string
   args: Args
@@ -216,7 +230,9 @@ export function tui(input: {
                               type: "session",
                               sessionID: "dummy",
                             }
-                          : undefined
+                          : hasCommonsCreds()
+                            ? undefined
+                            : { type: "auth" }
                       }
                     >
                       <TuiConfigProvider config={input.config}>
@@ -966,6 +982,9 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
             </Match>
             <Match when={route.data.type === "session"}>
               <Session />
+            </Match>
+            <Match when={route.data.type === "auth"}>
+              <Auth />
             </Match>
           </Switch>
           {plugin()}
