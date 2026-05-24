@@ -1022,6 +1022,7 @@ export interface Interface {
   ) => Effect.Effect<{ providerID: ProviderID; modelID: string } | undefined>
   readonly getSmallModel: (providerID: ProviderID) => Effect.Effect<Model | undefined>
   readonly defaultModel: () => Effect.Effect<{ providerID: ProviderID; modelID: ModelID }, DefaultModelError>
+  readonly reset: () => Effect.Effect<void>
 }
 
 interface State {
@@ -1845,7 +1846,11 @@ export const layer = Layer.effect(
       }
     })
 
-    return Service.of({ list, getProvider, getModel, getLanguage, closest, getSmallModel, defaultModel })
+    const reset = Effect.fn("Provider.reset")(function* () {
+      yield* InstanceState.invalidate(state)
+    })
+
+    return Service.of({ list, getProvider, getModel, getLanguage, closest, getSmallModel, defaultModel, reset })
   }),
 )
 

@@ -6019,6 +6019,34 @@ export type ProviderOauthCallbackResponses = {
 
 export type ProviderOauthCallbackResponse = ProviderOauthCallbackResponses[keyof ProviderOauthCallbackResponses]
 
+export type ProviderResetData = {
+  body?: never
+  path?: never
+  query?: {
+    directory?: string
+    workspace?: string
+  }
+  url: "/provider/reset"
+}
+
+export type ProviderResetErrors = {
+  /**
+   * Bad request
+   */
+  400: BadRequestError
+}
+
+export type ProviderResetError = ProviderResetErrors[keyof ProviderResetErrors]
+
+export type ProviderResetResponses = {
+  /**
+   * Provider state cache reset
+   */
+  200: boolean
+}
+
+export type ProviderResetResponse = ProviderResetResponses[keyof ProviderResetResponses]
+
 export type SessionListData = {
   body?: never
   path?: never

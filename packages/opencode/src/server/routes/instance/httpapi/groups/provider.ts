@@ -80,6 +80,17 @@ export const ProviderApi = HttpApi.make("provider")
             description: "Handle the OAuth callback from a provider after user authorization.",
           }),
         ),
+        HttpApiEndpoint.post("reset", `${root}/reset`, {
+          query: WorkspaceRoutingQuery,
+          success: described(Schema.Boolean, "Provider state cache reset"),
+        }).annotateMerge(
+          OpenApi.annotations({
+            identifier: "provider.reset",
+            summary: "Reset provider state",
+            description:
+              "Invalidate the cached provider state so the next provider list/get reloads credentials and config from disk.",
+          }),
+        ),
       )
       .annotateMerge(
         OpenApi.annotations({

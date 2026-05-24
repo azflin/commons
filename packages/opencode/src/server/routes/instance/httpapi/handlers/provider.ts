@@ -103,10 +103,16 @@ export const providerHandlers = HttpApiBuilder.group(InstanceHttpApi, "provider"
       return true
     })
 
+    const reset = Effect.fn("ProviderHttpApi.reset")(function* () {
+      yield* provider.reset()
+      return true
+    })
+
     return handlers
       .handle("list", list)
       .handle("auth", auth)
       .handleRaw("authorize", authorizeRaw)
       .handle("callback", callback)
+      .handle("reset", reset)
   }),
 )

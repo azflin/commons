@@ -495,6 +495,18 @@ export const { use: useSync, provider: SyncProvider } = createSimpleContext({
       get path() {
         return project.instance.path()
       },
+      async refreshProviders() {
+        const workspace = project.workspace.current()
+        const [providers, providerList] = await Promise.all([
+          sdk.client.config.providers({ workspace }, { throwOnError: true }).then((x) => x.data!),
+          sdk.client.provider.list({ workspace }, { throwOnError: true }).then((x) => x.data!),
+        ])
+        batch(() => {
+          setStore("provider", reconcile(providers.providers))
+          setStore("provider_default", reconcile(providers.default))
+          setStore("provider_next", reconcile(providerList))
+        })
+      },
       session: {
         get(sessionID: string) {
           const match = Binary.search(store.session, sessionID, (s) => s.id)
