@@ -455,6 +455,9 @@ export const layer = Layer.effect(
                 {
                   $schema: "https://opencode.ai/config.json",
                   model: "commons/deepseek/deepseek-v4-pro",
+                  // Commons ships its own binary; opencode's auto-updater would
+                  // replace it with upstream opencode. Disable it.
+                  autoupdate: false,
                   enabled_providers: [
                     "commons",
                     "opencode",
