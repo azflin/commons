@@ -61,7 +61,12 @@ export function DialogModel(props: { providerID?: string }) {
     const providerOptions = pipe(
       sync.data.provider,
       sortBy(
-        (provider) => provider.id !== "opencode",
+        (provider) => {
+          // Commons first, opencode second, everyone else alphabetical.
+          if (provider.id === "commons") return 0
+          if (provider.id === "opencode") return 1
+          return 2
+        },
         (provider) => provider.name,
       ),
       flatMap((provider) =>

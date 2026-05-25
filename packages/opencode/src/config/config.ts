@@ -454,7 +454,19 @@ export const layer = Layer.effect(
               JSON.stringify(
                 {
                   $schema: "https://opencode.ai/config.json",
-                  model: "opencode/big-pickle",
+                  model: "commons/deepseek/deepseek-v4-pro",
+                  enabled_providers: [
+                    "commons",
+                    "opencode",
+                    "openai",
+                    "anthropic",
+                    "google",
+                    "openrouter",
+                    "xai",
+                    "groq",
+                    "mistral",
+                    "github-copilot",
+                  ],
                   provider: {
                     commons: {
                       name: "commons",
