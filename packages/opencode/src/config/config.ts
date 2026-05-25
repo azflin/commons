@@ -464,9 +464,10 @@ export const layer = Layer.effect(
                         baseURL: `${COMMONS_GATEWAY_URL}/v1`,
                       },
                       models: {
-                        "anthropic/claude-sonnet-4.5": { name: "Claude Sonnet 4.5" },
-                        "openai/gpt-4o-mini": { name: "GPT-4o mini" },
-                        "deepseek/deepseek-chat": { name: "DeepSeek Chat" },
+                        "deepseek/deepseek-v4-pro": { name: "DeepSeek V4 Pro" },
+                        "moonshotai/kimi-k2.6": { name: "Kimi K2.6" },
+                        "qwen/qwen3-coder-next": { name: "Qwen3 Coder Next" },
+                        "z-ai/glm-5": { name: "GLM-5" },
                       },
                     },
                   },
