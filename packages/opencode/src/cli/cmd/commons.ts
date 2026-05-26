@@ -51,4 +51,5 @@ export const CommonsCommand = cmd({
   command: "commons",
   describe: "Commons account commands",
   builder: (yargs) => yargs.command(LoginCommand).demandCommand(),
+  async handler() {},
 })
