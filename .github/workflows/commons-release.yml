@@ -1,0 +1,77 @@
+name: commons-release
+
+# Builds Commons binaries on GitHub's runners (no personal machine / paths)
+# and attaches them to a GitHub Release. Triggered by pushing a v* tag, or
+# manually via the Actions tab.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest # Apple Silicon (arm64)
+            target: commons-darwin-arm64
+          - os: ubuntu-latest # x64
+            target: commons-linux-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build binary
+        working-directory: packages/opencode
+        run: bun run script/build.ts --single --skip-install
+
+      - name: Zip binary
+        working-directory: packages/opencode/dist/${{ matrix.target }}/bin
+        run: zip -q ../../${{ matrix.target }}.zip commons
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: packages/opencode/dist/${{ matrix.target }}.zip
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Collect + checksum
+        run: |
+          mkdir -p release
+          find artifacts -name "*.zip" -exec cp {} release/ \;
+          cd release
+          sha256sum *.zip > checksums.txt
+          ls -la
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          name: Commons ${{ github.event.inputs.tag || github.ref_name }}
+          files: |
+            release/*.zip
+            release/checksums.txt

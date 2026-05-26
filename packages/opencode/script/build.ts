@@ -93,7 +93,7 @@ const allTargets: {
     arch: "arm64",
   },
   {
-    os: "win32",
+    os: "linux",
     arch: "x64",
   },
 ]
