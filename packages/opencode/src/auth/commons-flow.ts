@@ -4,34 +4,54 @@
  */
 import { COMMONS_WEB_URL } from "../commons/const"
 
-const SUCCESS_HTML = `<!doctype html>
+function successHtml(webUrl: string): string {
+  return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <title>commons — signed in</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
   <style>
     :root { color-scheme: dark; }
+    @font-face {
+      font-family: "PP Neue Bit";
+      src: url("${webUrl}/fonts/PPNeueBit-Bold.otf") format("opentype");
+      font-weight: 700;
+      font-display: swap;
+    }
     html, body { margin: 0; height: 100%; }
     body {
-      background: #0a0a0a;
-      color: #e8e8e8;
-      font: 14px ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+      background: #061BFF;
+      color: #F5F1E9;
+      font-family: "Source Serif 4", Georgia, serif;
       display: grid;
       place-items: center;
     }
-    main { width: 100%; max-width: 420px; padding: 32px; }
-    h1 { font-size: 28px; letter-spacing: 0.02em; margin: 0 0 24px; }
-    p  { line-height: 1.55; color: #b0b0b0; }
+    main { width: 100%; max-width: 460px; padding: 32px; text-align: center; }
+    h1 {
+      font-family: "PP Neue Bit", "Source Serif 4", monospace;
+      font-size: 72px;
+      line-height: 0.9;
+      letter-spacing: 0.01em;
+      margin: 0 0 20px;
+      color: #DBFD00;
+    }
+    p { font-size: 18px; line-height: 1.55; margin: 0; }
+    .hint { margin-top: 16px; font-size: 14px; opacity: 0.7; }
   </style>
 </head>
 <body>
   <main>
     <h1>commons</h1>
-    <p>Signed in. You can close this tab and return to the CLI.</p>
+    <p>Signed in.</p>
+    <p class="hint">You can close this tab and return to the CLI.</p>
   </main>
 </body>
 </html>`
+}
 
 export interface CommonsAuthFlow {
   authUrl: string
@@ -67,7 +87,7 @@ export function startCommonsAuthFlow(): CommonsAuthFlow {
         return new Response("State mismatch", { status: 400 })
       }
       resolveKey(key)
-      return new Response(SUCCESS_HTML, { headers: { "content-type": "text/html" } })
+      return new Response(successHtml(webUrl), { headers: { "content-type": "text/html" } })
     },
   })
 
