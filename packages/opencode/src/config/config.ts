@@ -454,7 +454,7 @@ export const layer = Layer.effect(
               JSON.stringify(
                 {
                   $schema: "https://opencode.ai/config.json",
-                  model: "commons/deepseek/deepseek-v4-pro",
+                  model: "commons/deepseek/deepseek-v4-flash",
                   // Commons ships its own binary; opencode's auto-updater would
                   // replace it with upstream opencode. Disable it.
                   autoupdate: false,
@@ -479,10 +479,8 @@ export const layer = Layer.effect(
                         baseURL: `${COMMONS_GATEWAY_URL}/v1`,
                       },
                       models: {
+                        "deepseek/deepseek-v4-flash": { name: "DeepSeek V4 Flash" },
                         "deepseek/deepseek-v4-pro": { name: "DeepSeek V4 Pro" },
-                        "moonshotai/kimi-k2.6": { name: "Kimi K2.6" },
-                        "qwen/qwen3-coder-next": { name: "Qwen3 Coder Next" },
-                        "z-ai/glm-5": { name: "GLM-5" },
                       },
                     },
                   },
