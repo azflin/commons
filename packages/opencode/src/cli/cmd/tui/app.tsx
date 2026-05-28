@@ -49,6 +49,7 @@ import { DialogConsoleOrg } from "@tui/component/dialog-console-org"
 import { ThemeProvider, useTheme } from "@tui/context/theme"
 import { Home } from "@tui/routes/home"
 import { Session } from "@tui/routes/session"
+import { Auth } from "@tui/routes/auth"
 import { PromptHistoryProvider } from "./component/prompt/history"
 import { FrecencyProvider } from "./component/prompt/frecency"
 import { PromptStashProvider } from "./component/prompt/stash"
@@ -1099,6 +1100,9 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
             </Match>
             <Match when={route.data.type === "session"}>
               <Session />
+            </Match>
+            <Match when={route.data.type === "auth"}>
+              <Auth />
             </Match>
           </Switch>
           {plugin()}
