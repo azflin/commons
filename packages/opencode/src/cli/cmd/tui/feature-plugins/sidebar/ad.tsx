@@ -67,7 +67,7 @@ function View(props: { api: TuiPluginApi }) {
 const tui: TuiPlugin = async (api) => {
   startPolling()
   api.slots.register({
-    order: 800,
+    order: 10, // top of the content stack (above Context=100) — most prominent
     slots: {
       sidebar_content(_ctx, _props) {
         return <View api={api} />
