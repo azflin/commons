@@ -36,6 +36,7 @@ import vercel from "./theme/vercel.json" with { type: "json" }
 import vesper from "./theme/vesper.json" with { type: "json" }
 import zenburn from "./theme/zenburn.json" with { type: "json" }
 import carbonfox from "./theme/carbonfox.json" with { type: "json" }
+import commons from "./theme/commons.json" with { type: "json" }
 import { useKV } from "./kv"
 import { useRenderer } from "@opentui/solid"
 import { createStore, produce } from "solid-js/store"
@@ -120,6 +121,7 @@ export const DEFAULT_THEMES: Record<string, ThemeJson> = {
   vercel,
   zenburn,
   carbonfox,
+  commons,
 }
 
 type State = {
@@ -321,8 +323,10 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
         }
         draft.mode = mode
         draft.lock = lock
-        const active = config.theme ?? kv.get("theme", "opencode")
-        draft.active = typeof active === "string" ? active : "opencode"
+        // Commons brand theme is the default for anyone who hasn't explicitly
+        // chosen another (config.theme or a previously-picked theme still win).
+        const active = config.theme ?? kv.get("theme", "commons")
+        draft.active = typeof active === "string" ? active : "commons"
         draft.ready = false
       }),
     )

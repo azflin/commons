@@ -17,7 +17,11 @@ This fork (Commons) modifies upstream opencode. Most customization lives in **ne
 - `if (route.data.type === "auth") return { name: "auth" }` in `routeCurrent`.
 
 ### `packages/opencode/src/config/config.ts` — seed (in `loadGlobal`)
-- Seeds `~/.config/commons/opencode.jsonc`: `model: "commons/deepseek/deepseek-v4-flash"`, `autoupdate: false`, `enabled_providers`, and the `commons` provider block (baseURL `${COMMONS_GATEWAY_URL}/v1`, models flash + pro).
+- Seeds the global config: `model: "commons/deepseek/deepseek-v4-flash"`, `theme: "commons"`, `autoupdate: false`, `enabled_providers`, and the `commons` provider block (baseURL `${COMMONS_GATEWAY_URL}/v1`, models flash + pro). Seed only writes on first run (`!existsSync`); `theme` is a default users/project configs can override.
+
+### `packages/opencode/src/cli/cmd/tui/context/theme.tsx` — register + default the Commons theme
+- (a) import `commons` from `./theme/commons.json` + add `commons,` to `DEFAULT_THEMES`.
+- (b) the default-theme fallback (`config.theme ?? kv.get("theme", "commons")` + the `: "commons"` guard) — was `"opencode"`. This makes Commons the default for anyone who hasn't explicitly picked another theme (fresh OR existing), not just fresh installs the seed reaches. The palette lives in the new `theme/commons.json` (safe); these are the in-place parts.
 
 ### `packages/opencode/src/cli/cmd/tui/component/dialog-model.tsx`
 - Sort puts `commons` first; "Free" tag for `commons`/`opencode` providers.
@@ -39,6 +43,7 @@ This fork (Commons) modifies upstream opencode. Most customization lives in **ne
 - `src/cli/cmd/tui/feature-plugins/sidebar/ad.tsx` — sidebar ad plugin
 - `.github/workflows/commons-release.yml` — CI release
 - `feature-plugins/sidebar/game.tsx` — Mole Tap (only on `game-test` branch)
+- `src/cli/cmd/tui/context/theme/commons.json` — Commons brand theme palette
 
 ## Post-merge checklist
 Run from repo root after `git merge anomalyco/dev` (a clean auto-merge is NOT enough):
@@ -50,6 +55,8 @@ grep -c 'routes/auth' "$F"                # expect 1 (the Auth import)
 grep -c 'deepseek-v4-flash' packages/opencode/src/config/config.ts   # expect >=1
 grep -c 'SidebarAd' packages/opencode/src/cli/cmd/tui/plugin/internal.ts  # expect 2
 grep -c '=== "auth"' packages/opencode/src/cli/cmd/tui/plugin/api.tsx     # expect 1
+grep -c 'commons' packages/opencode/src/cli/cmd/tui/context/theme.tsx    # import + map entry + default fallback (kv.get + guard)
+grep -c '"commons"' packages/opencode/src/config/config.ts               # theme + model + provider refs
 ```
 Then **actually boot it with no creds** (`rm ~/.local/share/commons/auth.json` → `bun dev <repo>`) to confirm the forced-auth screen renders — typecheck passing does not catch a missing `<Match>`.
 

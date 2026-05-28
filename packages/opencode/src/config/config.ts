@@ -455,6 +455,9 @@ export const layer = Layer.effect(
                 {
                   $schema: "https://opencode.ai/config.json",
                   model: "commons/deepseek/deepseek-v4-flash",
+                  // Commons brand theme (cream/blue/yellow, transparent bg).
+                  // Seeded default only — users / project configs can still override.
+                  theme: "commons",
                   // Commons ships its own binary; opencode's auto-updater would
                   // replace it with upstream opencode. Disable it.
                   autoupdate: false,
