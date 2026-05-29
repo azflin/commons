@@ -32,6 +32,15 @@ This fork (Commons) modifies upstream opencode. Most customization lives in **ne
 ### `packages/opencode/script/build.ts`
 - `const PRODUCT = "commons"` (binary name, targets, smoke-test path).
 
+### `packages/opencode/src/cli/cmd/tui/routes/home.tsx` — boot-wave mount (HIGHEST merge risk of the branding edits)
+- Imports `BootWave`; **wraps the return in a `<box flexDirection="column">`** with an absolute `<BootWave/>` at `zIndex={0}` behind content (`zIndex={1}`). The wave plays **perpetually** while the home/boot screen is mounted (stops when a session starts). If upstream restructures the home render, this is the bit that conflicts/drops — re-apply by hand, same as the auth `<Match>` lesson. (Idle CPU lever: `renderer.targetFps` in `boot-wave.tsx`, currently 30.)
+
+### `packages/opencode/src/cli/cmd/tui/routes/auth.tsx` — boot-wave mount (mirrors home)
+- Same wrap as home.tsx: column box + absolute `<BootWave/>` at `zIndex={0}` behind the sign-in content (`zIndex={1}`). The forced-auth screen is the first thing a new user sees, so the wave plays there too.
+
+### `packages/opencode/src/cli/logo.ts` — COMMONS logo art
+- Replaced upstream's `logo` shape with the chafa-derived COMMONS wordmark (5 rows). Upstream edits this occasionally; on conflict, keep ours. (`go` + `marks` unchanged.)
+
 ### `packages/opencode/src/index.ts` — CLI `-h` branding
 - `.scriptName("commons")` (was "opencode") → usage header + command examples in `-h` say "commons".
 - `show()` helper's prefix check `text.startsWith("commons ")` (was "opencode ") — MUST move with scriptName, else help output gets a stray logo banner. NOTE: internal `OPENCODE_*` env vars, `opencode.json` config discovery, `@opencode-ai/*` imports are intentionally LEFT as-is (invisible to users, merge-critical).
@@ -51,6 +60,7 @@ User-visible `opencode`→`commons` swaps in help/output strings only: `cli/erro
 - `.github/workflows/commons-release.yml` — CI release
 - `feature-plugins/sidebar/game.tsx` — Mole Tap (only on `game-test` branch)
 - `src/cli/cmd/tui/context/theme/commons.json` — Commons brand theme palette
+- `src/cli/cmd/tui/component/boot-wave.tsx` + `boot-wave-render.ts` — boot-wave animation (near-copy fork of `bg-pulse.tsx`/`bg-pulse-render.ts`; perpetual radial wave on home + auth screens). No git-merge conflict risk (new files), BUT: if a major `@opentui/*` bump changes the `FrameBufferRenderable` / `buffers.{fg,bg,char}` API and upstream patches `bg-pulse` to match, our copy won't get that fix → re-sync boot-wave from the updated bg-pulse. Diff the two files after big opentui bumps.
 
 ## Post-merge checklist
 Run from repo root after `git merge anomalyco/dev` (a clean auto-merge is NOT enough):
@@ -64,6 +74,9 @@ grep -c 'deepseek-v4-flash' packages/opencode/src/config/config.ts   # expect >=
 grep -c 'SidebarAd' packages/opencode/src/cli/cmd/tui/plugin/internal.ts  # expect 2
 grep -c '=== "auth"' packages/opencode/src/cli/cmd/tui/plugin/api.tsx     # expect 1
 grep -c 'scriptName("commons")' packages/opencode/src/index.ts           # expect 1 (-h branding)
+grep -c 'BootWave' packages/opencode/src/cli/cmd/tui/routes/home.tsx     # expect 2 (import + mount)
+grep -c 'BootWave' packages/opencode/src/cli/cmd/tui/routes/auth.tsx     # expect 2 (import + mount)
+grep -c 'COMMONS\|commons' packages/opencode/src/cli/logo.ts             # logo art present (don't let a merge revert it)
 grep -c 'commons' packages/opencode/src/cli/cmd/tui/context/theme.tsx    # import + map entry + default fallback (kv.get + guard)
 grep -c '"commons"' packages/opencode/src/config/config.ts               # theme + model + provider refs
 ```
