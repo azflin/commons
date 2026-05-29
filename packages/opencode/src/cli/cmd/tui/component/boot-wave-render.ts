@@ -120,16 +120,14 @@ function sameRgb(a: Rgb, b: Rgb) {
   return a[0] === b[0] && a[1] === b[1] && a[2] === b[2]
 }
 
-const BOOT_DURATION = 3000
 const FADE_IN = 400
-const FADE_OUT_START = 2200
 
-// 0→1 quick fade-in, hold, then ramp to 0 before the home unmounts the wave.
+// Perpetual boot-screen wave: quick 0→1 fade-in, then hold at full forever.
+// The wave only renders while the home/boot screen is mounted — it stops the
+// instant a session starts. No fade-out (Slayed wants it looping).
 function bootIntensity(t: number) {
   if (t <= 0) return 0
   if (t < FADE_IN) return t / FADE_IN
-  if (t >= BOOT_DURATION) return 0
-  if (t > FADE_OUT_START) return clamp(1 - (t - FADE_OUT_START) / (BOOT_DURATION - FADE_OUT_START))
   return 1
 }
 

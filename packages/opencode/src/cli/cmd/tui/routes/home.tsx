@@ -1,5 +1,5 @@
 import { Prompt, type PromptRef } from "@tui/component/prompt"
-import { createEffect, createMemo, createSignal, onCleanup, onMount } from "solid-js"
+import { createEffect, createMemo, createSignal, onMount } from "solid-js"
 import { Logo } from "../component/logo"
 import { BootWave } from "../component/boot-wave"
 import { useSync } from "../context/sync"
@@ -14,7 +14,6 @@ import { useTerminalDimensions } from "@opentui/solid"
 import { useTuiConfig } from "../context/tui-config"
 
 let once = false
-let bootPlayed = false
 const placeholder = {
   normal: ["Fix a TODO in the codebase", "What is the tech stack of this project?", "Fix broken tests"],
   shell: ["ls -la", "git status", "pwd"],
@@ -25,8 +24,6 @@ export function Home() {
   const route = useRouteData("home")
   const promptRef = usePromptRef()
   const [ref, setRef] = createSignal<PromptRef | undefined>()
-  // Commons: one-shot boot-wave background (plays once per process launch).
-  const [showBoot, setShowBoot] = createSignal(!bootPlayed)
   const args = useArgs()
   const local = useLocal()
   const editor = useEditorContext()
@@ -41,11 +38,6 @@ export function Home() {
 
   onMount(() => {
     editor.clearSelection()
-    if (showBoot()) {
-      bootPlayed = true
-      const timer = setTimeout(() => setShowBoot(false), 3000)
-      onCleanup(() => clearTimeout(timer))
-    }
   })
 
   const bind = (r: PromptRef | undefined) => {
@@ -76,11 +68,9 @@ export function Home() {
 
   return (
     <box flexGrow={1} flexDirection="column">
-      {showBoot() && (
-        <box position="absolute" top={0} left={0} right={0} bottom={0} zIndex={0}>
-          <BootWave />
-        </box>
-      )}
+      <box position="absolute" top={0} left={0} right={0} bottom={0} zIndex={0}>
+        <BootWave />
+      </box>
       <box flexGrow={1} alignItems="center" paddingLeft={2} paddingRight={2} zIndex={1}>
         <box flexGrow={1} minHeight={0} />
         <box height={4} minHeight={0} flexShrink={1} />

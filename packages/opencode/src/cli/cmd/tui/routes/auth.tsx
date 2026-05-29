@@ -1,6 +1,7 @@
 import { createSignal, onCleanup, onMount, Switch, Match } from "solid-js"
 import open from "open"
 import { Logo } from "../component/logo"
+import { BootWave } from "../component/boot-wave"
 import { useTheme } from "@tui/context/theme"
 import { useRoute } from "@tui/context/route"
 import { useSync } from "@tui/context/sync"
@@ -56,7 +57,11 @@ export function Auth() {
   })
 
   return (
-    <box flexGrow={1} alignItems="center" paddingLeft={2} paddingRight={2}>
+    <box flexGrow={1} flexDirection="column">
+      <box position="absolute" top={0} left={0} right={0} bottom={0} zIndex={0}>
+        <BootWave />
+      </box>
+      <box flexGrow={1} alignItems="center" paddingLeft={2} paddingRight={2} zIndex={1}>
       <box flexGrow={1} minHeight={0} />
       <box flexShrink={0}>
         <Logo />
@@ -93,6 +98,7 @@ export function Auth() {
         </Switch>
       </box>
       <box flexGrow={1} minHeight={0} />
+      </box>
     </box>
   )
 }

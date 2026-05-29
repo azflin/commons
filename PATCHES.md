@@ -33,7 +33,10 @@ This fork (Commons) modifies upstream opencode. Most customization lives in **ne
 - `const PRODUCT = "commons"` (binary name, targets, smoke-test path).
 
 ### `packages/opencode/src/cli/cmd/tui/routes/home.tsx` — boot-wave mount (HIGHEST merge risk of the branding edits)
-- Imports `BootWave`; adds module `let bootPlayed` + a `showBoot` signal + an `onMount` setTimeout (one-shot per launch); **wraps the return in a `<box flexDirection="column">`** with an absolute `<BootWave/>` at `zIndex={0}` behind content (`zIndex={1}`). If upstream restructures the home render, this is the bit that conflicts/drops — re-apply by hand, same as the auth `<Match>` lesson.
+- Imports `BootWave`; **wraps the return in a `<box flexDirection="column">`** with an absolute `<BootWave/>` at `zIndex={0}` behind content (`zIndex={1}`). The wave plays **perpetually** while the home/boot screen is mounted (stops when a session starts). If upstream restructures the home render, this is the bit that conflicts/drops — re-apply by hand, same as the auth `<Match>` lesson. (Idle CPU lever: `renderer.targetFps` in `boot-wave.tsx`, currently 30.)
+
+### `packages/opencode/src/cli/cmd/tui/routes/auth.tsx` — boot-wave mount (mirrors home)
+- Same wrap as home.tsx: column box + absolute `<BootWave/>` at `zIndex={0}` behind the sign-in content (`zIndex={1}`). The forced-auth screen is the first thing a new user sees, so the wave plays there too.
 
 ### `packages/opencode/src/cli/logo.ts` — COMMONS logo art
 - Replaced upstream's `logo` shape with the chafa-derived COMMONS wordmark (5 rows). Upstream edits this occasionally; on conflict, keep ours. (`go` + `marks` unchanged.)
@@ -72,6 +75,7 @@ grep -c 'SidebarAd' packages/opencode/src/cli/cmd/tui/plugin/internal.ts  # expe
 grep -c '=== "auth"' packages/opencode/src/cli/cmd/tui/plugin/api.tsx     # expect 1
 grep -c 'scriptName("commons")' packages/opencode/src/index.ts           # expect 1 (-h branding)
 grep -c 'BootWave' packages/opencode/src/cli/cmd/tui/routes/home.tsx     # expect 2 (import + mount)
+grep -c 'BootWave' packages/opencode/src/cli/cmd/tui/routes/auth.tsx     # expect 2 (import + mount)
 grep -c 'COMMONS\|commons' packages/opencode/src/cli/logo.ts             # logo art present (don't let a merge revert it)
 grep -c 'commons' packages/opencode/src/cli/cmd/tui/context/theme.tsx    # import + map entry + default fallback (kv.get + guard)
 grep -c '"commons"' packages/opencode/src/config/config.ts               # theme + model + provider refs
