@@ -49,7 +49,8 @@ This fork (Commons) modifies upstream opencode. Most customization lives in **ne
 Run from repo root after `git merge anomalyco/dev` (a clean auto-merge is NOT enough):
 ```bash
 F=packages/opencode/src/cli/cmd/tui/app.tsx
-grep -c 'type === "auth"' "$F"            # expect 2 (initialRoute + Match)
+grep -c 'type === "auth"' "$F"            # expect 1 (the render <Match>; uses ===)
+grep -c 'type: "auth"' "$F"               # expect 1 (the initialRoute forced-auth; uses : not ===)
 grep -c 'hasCommonsCreds' "$F"            # expect 2
 grep -c 'routes/auth' "$F"                # expect 1 (the Auth import)
 grep -c 'deepseek-v4-flash' packages/opencode/src/config/config.ts   # expect >=1
