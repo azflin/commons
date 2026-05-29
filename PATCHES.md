@@ -60,7 +60,7 @@ User-visible `opencode`→`commons` swaps in help/output strings only: `cli/erro
 - `.github/workflows/commons-release.yml` — CI release
 - `feature-plugins/sidebar/game.tsx` — Mole Tap (only on `game-test` branch)
 - `src/cli/cmd/tui/context/theme/commons.json` — Commons brand theme palette
-- `src/cli/cmd/tui/component/boot-wave.tsx` + `boot-wave-render.ts` — boot-wave animation (forked from bg-pulse; self-contained, no conflict risk but won't inherit upstream bg-pulse changes)
+- `src/cli/cmd/tui/component/boot-wave.tsx` + `boot-wave-render.ts` — boot-wave animation (near-copy fork of `bg-pulse.tsx`/`bg-pulse-render.ts`; perpetual radial wave on home + auth screens). No git-merge conflict risk (new files), BUT: if a major `@opentui/*` bump changes the `FrameBufferRenderable` / `buffers.{fg,bg,char}` API and upstream patches `bg-pulse` to match, our copy won't get that fix → re-sync boot-wave from the updated bg-pulse. Diff the two files after big opentui bumps.
 
 ## Post-merge checklist
 Run from repo root after `git merge anomalyco/dev` (a clean auto-merge is NOT enough):
