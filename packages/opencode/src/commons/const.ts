@@ -7,8 +7,8 @@
  *   bun dev
  */
 
-const DEFAULT_PROD_GATEWAY_URL = "https://gateway.defenseoftheagents.com"
-const DEFAULT_PROD_WEB_URL = "https://commons.defenseoftheagents.com"
+const DEFAULT_PROD_GATEWAY_URL = "https://gateway.commonsmade.com"
+const DEFAULT_PROD_WEB_URL = "https://commonsmade.com"
 
 /** The Commons gateway — LLM API endpoint. Used as provider baseURL. */
 export const COMMONS_GATEWAY_URL = process.env.COMMONS_GATEWAY_URL ?? DEFAULT_PROD_GATEWAY_URL
