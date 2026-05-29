@@ -32,6 +32,13 @@ This fork (Commons) modifies upstream opencode. Most customization lives in **ne
 ### `packages/opencode/script/build.ts`
 - `const PRODUCT = "commons"` (binary name, targets, smoke-test path).
 
+### `packages/opencode/src/index.ts` — CLI `-h` branding
+- `.scriptName("commons")` (was "opencode") → usage header + command examples in `-h` say "commons".
+- `show()` helper's prefix check `text.startsWith("commons ")` (was "opencode ") — MUST move with scriptName, else help output gets a stray logo banner. NOTE: internal `OPENCODE_*` env vars, `opencode.json` config discovery, `@opencode-ai/*` imports are intentionally LEFT as-is (invisible to users, merge-critical).
+
+### Cosmetic CLI string branding (low-priority — a merge reverting these is harmless, not in the must-pass checklist)
+User-visible `opencode`→`commons` swaps in help/output strings only: `cli/error.ts` (MCP-auth note + `commons models` hint), `cli/cmd/pr.ts:10` (describe), `cli/cmd/uninstall.ts:27` (describe), `cli/cmd/mcp.ts` (outro hint + placeholder). Deliberately NOT touched (functional/infra): all of `github.ts`, `account.ts`/`agent.ts` URLs+dirs, `network.ts` mDNS `opencode.local`, `error.ts:68` `opencode.json` filename, and `pr.ts` spawning the `opencode` binary (a real fork bug, deferred).
+
 ### typecheck shims (Provider interface gained `reset`)
 - `packages/opencode/test/fake/provider.ts` — `reset:` stub.
 
@@ -56,6 +63,7 @@ grep -c 'routes/auth' "$F"                # expect 1 (the Auth import)
 grep -c 'deepseek-v4-flash' packages/opencode/src/config/config.ts   # expect >=1
 grep -c 'SidebarAd' packages/opencode/src/cli/cmd/tui/plugin/internal.ts  # expect 2
 grep -c '=== "auth"' packages/opencode/src/cli/cmd/tui/plugin/api.tsx     # expect 1
+grep -c 'scriptName("commons")' packages/opencode/src/index.ts           # expect 1 (-h branding)
 grep -c 'commons' packages/opencode/src/cli/cmd/tui/context/theme.tsx    # import + map entry + default fallback (kv.get + guard)
 grep -c '"commons"' packages/opencode/src/config/config.ts               # theme + model + provider refs
 ```
