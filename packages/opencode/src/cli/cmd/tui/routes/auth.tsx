@@ -1,8 +1,6 @@
-import { createSignal, onCleanup, onMount, Switch, Match } from "solid-js"
+import { createSignal, onCleanup, onMount } from "solid-js"
 import open from "open"
-import { Logo } from "../component/logo"
-import { BootWave } from "../component/boot-wave"
-import { useTheme } from "@tui/context/theme"
+import { BootScreen } from "../component/boot-screen"
 import { useRoute } from "@tui/context/route"
 import { useSync } from "@tui/context/sync"
 import { useSDK } from "@tui/context/sdk"
@@ -11,20 +9,36 @@ import { startCommonsAuthFlow } from "@/auth/commons-flow"
 
 type Phase = "intro" | "opening" | "waiting" | "saving" | "success" | "error"
 
+// Status line shown beneath the COMMONS logo. Phase-specific so the user can
+// see exactly where the auth flow is — no separate dialog component, the
+// painter owns this text.
+function statusFor(phase: Phase): string {
+  switch (phase) {
+    case "intro":
+      return "Press enter to open browser"
+    case "opening":
+      return "Opening browser"
+    case "waiting":
+      return "Waiting for browser authorization"
+    case "saving":
+      return "Saving credentials"
+    case "success":
+      return "Signed in"
+    case "error":
+      return "Sign in failed — press enter to try again"
+  }
+}
+
 export function Auth() {
-  const { theme } = useTheme()
   const route = useRoute()
   const sync = useSync()
   const sdk = useSDK()
   const keymap = useOpencodeKeymap()
   const [phase, setPhase] = createSignal<Phase>("intro")
-  const [message, setMessage] = createSignal<string>("")
-  const [authUrl, setAuthUrl] = createSignal<string>("")
 
   async function runFlow() {
     try {
       const flow = startCommonsAuthFlow()
-      setAuthUrl(flow.authUrl)
       setPhase("opening")
       await open(flow.authUrl).catch(() => undefined)
       setPhase("waiting")
@@ -37,8 +51,7 @@ export function Auth() {
       setTimeout(() => {
         route.navigate({ type: "home" })
       }, 800)
-    } catch (err) {
-      setMessage(err instanceof Error ? err.message : String(err))
+    } catch {
       setPhase("error")
     }
   }
@@ -59,45 +72,7 @@ export function Auth() {
   return (
     <box flexGrow={1} flexDirection="column">
       <box position="absolute" top={0} left={0} right={0} bottom={0} zIndex={0}>
-        <BootWave />
-      </box>
-      <box flexGrow={1} alignItems="center" paddingLeft={2} paddingRight={2} zIndex={1}>
-      <box flexGrow={1} minHeight={0} />
-      <box flexShrink={0}>
-        <Logo />
-      </box>
-      <box height={2} minHeight={0} flexShrink={1} />
-      <box flexDirection="column" alignItems="center" maxWidth={70} flexShrink={0}>
-        <Switch>
-          <Match when={phase() === "intro"}>
-            <text fg={theme.text}>Sign in to commons to continue.</text>
-            <box height={1} />
-            <text fg={theme.textMuted}>Press Enter to open browser…</text>
-          </Match>
-          <Match when={phase() === "opening"}>
-            <text fg={theme.text}>Opening browser…</text>
-          </Match>
-          <Match when={phase() === "waiting"}>
-            <text fg={theme.text}>Waiting for browser authorization…</text>
-            <box height={1} />
-            <text fg={theme.textMuted}>{authUrl()}</text>
-          </Match>
-          <Match when={phase() === "saving"}>
-            <text fg={theme.text}>Saving credentials…</text>
-          </Match>
-          <Match when={phase() === "success"}>
-            <text fg={theme.text}>Signed in.</text>
-          </Match>
-          <Match when={phase() === "error"}>
-            <text fg={theme.text}>Sign in failed.</text>
-            <box height={1} />
-            <text fg={theme.textMuted}>{message()}</text>
-            <box height={1} />
-            <text fg={theme.textMuted}>Press Enter to try again.</text>
-          </Match>
-        </Switch>
-      </box>
-      <box flexGrow={1} minHeight={0} />
+        <BootScreen status={statusFor(phase())} />
       </box>
     </box>
   )

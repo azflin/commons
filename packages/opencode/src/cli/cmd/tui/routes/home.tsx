@@ -1,7 +1,7 @@
 import { Prompt, type PromptRef } from "@tui/component/prompt"
-import { createEffect, createMemo, createSignal, onMount } from "solid-js"
+import { createEffect, createMemo, createSignal, onCleanup, onMount, Show } from "solid-js"
 import { Logo } from "../component/logo"
-import { BootWave } from "../component/boot-wave"
+import { BootScreen } from "../component/boot-screen"
 import { useSync } from "../context/sync"
 import { Toast } from "../ui/toast"
 import { useArgs } from "../context/args"
@@ -12,6 +12,7 @@ import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 import { useEditorContext } from "@tui/context/editor"
 import { useTerminalDimensions } from "@opentui/solid"
 import { useTuiConfig } from "../context/tui-config"
+import { useOpencodeKeymap } from "../keymap"
 
 let once = false
 const placeholder = {
@@ -29,6 +30,11 @@ export function Home() {
   const editor = useEditorContext()
   const dimensions = useTerminalDimensions()
   const tuiConfig = useTuiConfig()
+  const keymap = useOpencodeKeymap()
+  // Boot screen gates the prompt. Skip it when --prompt is set on the CLI so
+  // auto-submit still works headlessly (the user clearly wants to go straight
+  // to a query, not stare at an animation).
+  const [bootDismissed, setBootDismissed] = createSignal(!!args.prompt)
   const promptMaxWidth = createMemo(() => {
     const configured = tuiConfig.prompt?.max_width
     if (configured === "auto") return Math.max(75, Math.floor(dimensions().width * 0.7))
@@ -38,6 +44,19 @@ export function Home() {
 
   onMount(() => {
     editor.clearSelection()
+    // Enter dismisses the boot screen; after dismissal the Prompt mounts and
+    // takes over Enter handling for submission. Priority 100 to win over any
+    // default key consumers while the boot screen is up.
+    const off = keymap.intercept(
+      "key",
+      ({ event }) => {
+        if (bootDismissed()) return
+        if (event.name !== "return") return
+        setBootDismissed(true)
+      },
+      { priority: 100 },
+    )
+    onCleanup(off)
   })
 
   const bind = (r: PromptRef | undefined) => {
@@ -67,31 +86,39 @@ export function Home() {
   })
 
   return (
-    <box flexGrow={1} flexDirection="column">
-      <box position="absolute" top={0} left={0} right={0} bottom={0} zIndex={0}>
-        <BootWave />
-      </box>
-      <box flexGrow={1} alignItems="center" paddingLeft={2} paddingRight={2} zIndex={1}>
-        <box flexGrow={1} minHeight={0} />
-        <box height={4} minHeight={0} flexShrink={1} />
-        <box flexShrink={0}>
-          <TuiPluginRuntime.Slot name="home_logo" mode="replace">
-            <Logo />
-          </TuiPluginRuntime.Slot>
+    <Show
+      when={bootDismissed()}
+      fallback={
+        <box flexGrow={1} flexDirection="column">
+          <box position="absolute" top={0} left={0} right={0} bottom={0} zIndex={0}>
+            <BootScreen status="Press enter to continue" />
+          </box>
         </box>
-        <box height={1} minHeight={0} flexShrink={1} />
-        <box width="100%" maxWidth={promptMaxWidth()} zIndex={1000} paddingTop={1} flexShrink={0}>
-          <TuiPluginRuntime.Slot name="home_prompt" mode="replace" ref={bind}>
-            <Prompt ref={bind} right={<TuiPluginRuntime.Slot name="home_prompt_right" />} placeholders={placeholder} />
-          </TuiPluginRuntime.Slot>
+      }
+    >
+      <box flexGrow={1} flexDirection="column">
+        <box flexGrow={1} alignItems="center" paddingLeft={2} paddingRight={2} zIndex={1}>
+          <box flexGrow={1} minHeight={0} />
+          <box height={4} minHeight={0} flexShrink={1} />
+          <box flexShrink={0}>
+            <TuiPluginRuntime.Slot name="home_logo" mode="replace">
+              <Logo />
+            </TuiPluginRuntime.Slot>
+          </box>
+          <box height={1} minHeight={0} flexShrink={1} />
+          <box width="100%" maxWidth={promptMaxWidth()} zIndex={1000} paddingTop={1} flexShrink={0}>
+            <TuiPluginRuntime.Slot name="home_prompt" mode="replace" ref={bind}>
+              <Prompt ref={bind} right={<TuiPluginRuntime.Slot name="home_prompt_right" />} placeholders={placeholder} />
+            </TuiPluginRuntime.Slot>
+          </box>
+          <TuiPluginRuntime.Slot name="home_bottom" />
+          <box flexGrow={1} minHeight={0} />
+          <Toast />
         </box>
-        <TuiPluginRuntime.Slot name="home_bottom" />
-        <box flexGrow={1} minHeight={0} />
-        <Toast />
+        <box width="100%" flexShrink={0} zIndex={1}>
+          <TuiPluginRuntime.Slot name="home_footer" mode="single_winner" />
+        </box>
       </box>
-      <box width="100%" flexShrink={0} zIndex={1}>
-        <TuiPluginRuntime.Slot name="home_footer" mode="single_winner" />
-      </box>
-    </box>
+    </Show>
   )
 }

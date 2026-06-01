@@ -32,11 +32,11 @@ This fork (Commons) modifies upstream opencode. Most customization lives in **ne
 ### `packages/opencode/script/build.ts`
 - `const PRODUCT = "commons"` (binary name, targets, smoke-test path).
 
-### `packages/opencode/src/cli/cmd/tui/routes/home.tsx` — boot-wave mount (HIGHEST merge risk of the branding edits)
-- Imports `BootWave`; **wraps the return in a `<box flexDirection="column">`** with an absolute `<BootWave/>` at `zIndex={0}` behind content (`zIndex={1}`). The wave plays **perpetually** while the home/boot screen is mounted (stops when a session starts). If upstream restructures the home render, this is the bit that conflicts/drops — re-apply by hand, same as the auth `<Match>` lesson. (Idle CPU lever: `renderer.targetFps` in `boot-wave.tsx`, currently 30.)
+### `packages/opencode/src/cli/cmd/tui/routes/home.tsx` — boot-screen gate (HIGHEST merge risk of the branding edits)
+- Imports `BootScreen` + `useOpencodeKeymap`; adds a `bootDismissed` signal (initialized `!!args.prompt` so `--prompt` skips the gate and auto-submit still works). On mount, intercepts `return` key at priority 100 to set `bootDismissed`. The render is wrapped in `<Show when={bootDismissed()} fallback={<BootScreen status="Press enter to continue"/>}>` — full-screen boot animation until the user presses Enter, then the existing home content (Logo + Prompt + slots) renders. **There is no longer a BootWave layer behind the prompt** — boot-screen is its own state, prompt view is clean. If upstream restructures home render, this is the bit that conflicts/drops — re-apply by hand, same as the auth `<Match>` lesson. (Idle CPU lever: `renderer.targetFps` in `boot-screen.tsx`, currently 30.)
 
-### `packages/opencode/src/cli/cmd/tui/routes/auth.tsx` — boot-wave mount (mirrors home)
-- Same wrap as home.tsx: column box + absolute `<BootWave/>` at `zIndex={0}` behind the sign-in content (`zIndex={1}`). The forced-auth screen is the first thing a new user sees, so the wave plays there too.
+### `packages/opencode/src/cli/cmd/tui/routes/auth.tsx` — boot-screen replaces the entire render
+- The Auth route is now **just `<BootScreen status={statusFor(phase())}/>`** in an absolute full-screen box. The phase-specific status text ("Press enter to open browser" / "Opening browser" / "Waiting for browser authorization" / "Saving credentials" / "Signed in" / "Sign in failed — press enter to try again") plumbs into the painter's spinner+status line. The Switch/Match render is gone; the painter owns all visible text. Keymap is unchanged — Enter on `intro`/`error` triggers `runFlow()`. The auth URL is no longer displayed (relies on `open()` opening the browser).
 
 ### `packages/opencode/src/cli/logo.ts` — COMMONS logo art
 - Replaced upstream's `logo` shape with the chafa-derived COMMONS wordmark (5 rows). Upstream edits this occasionally; on conflict, keep ours. (`go` + `marks` unchanged.)
@@ -60,7 +60,8 @@ User-visible `opencode`→`commons` swaps in help/output strings only: `cli/erro
 - `.github/workflows/commons-release.yml` — CI release
 - `feature-plugins/sidebar/game.tsx` — Mole Tap (only on `game-test` branch)
 - `src/cli/cmd/tui/context/theme/commons.json` — Commons brand theme palette
-- `src/cli/cmd/tui/component/boot-wave.tsx` + `boot-wave-render.ts` — boot-wave animation (near-copy fork of `bg-pulse.tsx`/`bg-pulse-render.ts`; perpetual radial wave on home + auth screens). No git-merge conflict risk (new files), BUT: if a major `@opentui/*` bump changes the `FrameBufferRenderable` / `buffers.{fg,bg,char}` API and upstream patches `bg-pulse` to match, our copy won't get that fix → re-sync boot-wave from the updated bg-pulse. Diff the two files after big opentui bumps.
+- `src/cli/cmd/tui/component/boot-wave.tsx` + `boot-wave-render.ts` — **PARKED.** Was the half-block radial wave shipped before; superseded by `boot-screen` (below). Kept on disk as a fallback in case we want to revert. Not imported by any route anymore. Delete when we're confident boot-screen is the keeper.
+- `src/cli/cmd/tui/component/boot-screen.tsx` + `boot-screen-render.ts` — full-screen animated boot panel (density-ASCII wobble field + decorative figlet COMMONS logo + reactive edge glyphs + spinner/status line). Faithful port of Slayed's `commons-terminal-ascii-flow-v44-animated-status.js`. Drives both routes via a single `<BootScreen status={...} />` component; the painter owns the entire surface (no separate Logo/text components). Color knob: `BRAND_BLUE` hardcoded in `boot-screen.tsx` (intentionally NOT `theme.primary` — Slayed wants blue, dark-mode theme.primary resolves to yellow). Same opentui API caveat as boot-wave: re-sync after big `@opentui/*` bumps.
 
 ## Post-merge checklist
 Run from repo root after `git merge anomalyco/dev` (a clean auto-merge is NOT enough):
@@ -74,8 +75,10 @@ grep -c 'deepseek-v4-flash' packages/opencode/src/config/config.ts   # expect >=
 grep -c 'SidebarAd' packages/opencode/src/cli/cmd/tui/plugin/internal.ts  # expect 2
 grep -c '=== "auth"' packages/opencode/src/cli/cmd/tui/plugin/api.tsx     # expect 1
 grep -c 'scriptName("commons")' packages/opencode/src/index.ts           # expect 1 (-h branding)
-grep -c 'BootWave' packages/opencode/src/cli/cmd/tui/routes/home.tsx     # expect 2 (import + mount)
-grep -c 'BootWave' packages/opencode/src/cli/cmd/tui/routes/auth.tsx     # expect 2 (import + mount)
+grep -c 'BootScreen' packages/opencode/src/cli/cmd/tui/routes/home.tsx   # expect 2 (import + mount in <Show> fallback)
+grep -c 'bootDismissed' packages/opencode/src/cli/cmd/tui/routes/home.tsx # expect >=3 (signal + intercept guard + Show when)
+grep -c 'BootScreen' packages/opencode/src/cli/cmd/tui/routes/auth.tsx   # expect 2 (import + mount)
+grep -c 'statusFor' packages/opencode/src/cli/cmd/tui/routes/auth.tsx    # expect 2 (decl + call)
 grep -c 'COMMONS\|commons' packages/opencode/src/cli/logo.ts             # logo art present (don't let a merge revert it)
 grep -c 'commons' packages/opencode/src/cli/cmd/tui/context/theme.tsx    # import + map entry + default fallback (kv.get + guard)
 grep -c '"commons"' packages/opencode/src/config/config.ts               # theme + model + provider refs
