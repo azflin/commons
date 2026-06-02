@@ -17,7 +17,7 @@ import { Locale } from "@/util/locale"
 
 let once = false
 const placeholder = {
-  normal: ["Fix a TODO in the codebase", "What is the tech stack of this project?", "Fix broken tests"],
+  normal: ["What is the tech stack of this project?", "What is the tech stack of this project?", "What is the tech stack of this project?"],
   shell: ["ls -la", "git status", "pwd"],
 }
 
