@@ -20,6 +20,9 @@ import {
 } from "solid-js"
 import { win32DisableProcessedInput, win32FlushInputBuffer, win32InstallCtrlCGuard } from "./win32"
 import { Flag } from "@opencode-ai/core/flag/flag"
+import { Global } from "@opencode-ai/core/global"
+import nodeFs from "node:fs"
+import nodePath from "node:path"
 import semver from "semver"
 import { DialogProvider, useDialog } from "@tui/ui/dialog"
 import { DialogProvider as DialogProviderList } from "@tui/component/dialog-provider"
@@ -46,6 +49,7 @@ import { DialogConsoleOrg } from "@tui/component/dialog-console-org"
 import { ThemeProvider, useTheme } from "@tui/context/theme"
 import { Home } from "@tui/routes/home"
 import { Session } from "@tui/routes/session"
+import { Auth } from "@tui/routes/auth"
 import { PromptHistoryProvider } from "./component/prompt/history"
 import { FrecencyProvider } from "./component/prompt/frecency"
 import { PromptStashProvider } from "./component/prompt/stash"
@@ -197,6 +201,17 @@ function errorMessage(error: unknown) {
   return FormatUnknownError(error)
 }
 
+// Commons: forced auth — true if a commons credential exists (env or auth.json).
+function hasCommonsCreds(): boolean {
+  if (process.env.COMMONS_KEY) return true
+  try {
+    const data = JSON.parse(nodeFs.readFileSync(nodePath.join(Global.Path.data, "auth.json"), "utf8"))
+    return !!data?.commons
+  } catch {
+    return false
+  }
+}
+
 export function tui(input: TuiInput): TuiHandle {
   const unguard = win32InstallCtrlCGuard()
   win32DisableProcessedInput()
@@ -243,7 +258,9 @@ async function mountTui(input: TuiInput & { keymap: ReturnType<typeof createDefa
                             type: "session",
                             sessionID: "dummy",
                           }
-                        : undefined
+                        : hasCommonsCreds()
+                          ? undefined
+                          : { type: "auth" }
                     }
                   >
                     <TuiConfigProvider config={input.config}>
@@ -970,11 +987,13 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     bindings: tuiConfig.keybinds.gather("app_exit", ["app.exit"]),
   }))
 
-  event.on(TuiEvent.CommandExecute.type, (evt) => {
+  event.on(TuiEvent.CommandExecute.type, (evt, { workspace }) => {
+    if (workspace !== project.workspace.current()) return
     keymap.dispatchCommand(evt.properties.command)
   })
 
-  event.on(TuiEvent.ToastShow.type, (evt) => {
+  event.on(TuiEvent.ToastShow.type, (evt, { workspace }) => {
+    if (workspace !== project.workspace.current()) return
     toast.show({
       title: evt.properties.title,
       message: evt.properties.message,
@@ -983,7 +1002,8 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     })
   })
 
-  event.on(TuiEvent.SessionSelect.type, (evt) => {
+  event.on(TuiEvent.SessionSelect.type, (evt, { workspace }) => {
+    if (workspace !== project.workspace.current()) return
     route.navigate({
       type: "session",
       sessionID: evt.properties.sessionID,
@@ -1000,7 +1020,8 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
     }
   })
 
-  event.on("session.error", (evt) => {
+  event.on("session.error", (evt, { workspace }) => {
+    if (workspace !== project.workspace.current()) return
     const error = evt.properties.error
     if (error && typeof error === "object" && error.name === "MessageAbortedError") return
     const message = errorMessage(error)
@@ -1097,6 +1118,9 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
               <Show when={route.data.type === "session" ? route.data.sessionID : undefined} keyed>
                 {(_) => <Session />}
               </Show>
+            </Match>
+            <Match when={route.data.type === "auth"}>
+              <Auth />
             </Match>
           </Switch>
           {plugin()}

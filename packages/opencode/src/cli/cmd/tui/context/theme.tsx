@@ -323,8 +323,10 @@ export const { use: useTheme, provider: ThemeProvider } = createSimpleContext({
         }
         draft.mode = mode
         draft.lock = lock
-        const active = config.theme ?? kv.get("theme", "opencode")
-        draft.active = typeof active === "string" ? active : "opencode"
+        // Commons brand theme is the default for anyone who hasn't explicitly
+        // chosen another (config.theme or a previously-picked theme still win).
+        const active = config.theme ?? kv.get("theme", "commons")
+        draft.active = typeof active === "string" ? active : "commons"
         draft.ready = false
       }),
     )

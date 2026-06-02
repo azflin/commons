@@ -117,6 +117,7 @@ import type {
   PermissionRespondErrors,
   PermissionRespondResponses,
   PermissionRuleset,
+  PermissionV2Reply,
   ProjectCurrentErrors,
   ProjectCurrentResponses,
   ProjectInitGitErrors,
@@ -134,6 +135,8 @@ import type {
   ProviderOauthAuthorizeResponses,
   ProviderOauthCallbackErrors,
   ProviderOauthCallbackResponses,
+  ProviderResetErrors,
+  ProviderResetResponses,
   PtyConnectErrors,
   PtyConnectResponses,
   PtyConnectTokenErrors,
@@ -248,6 +251,12 @@ import type {
   TuiSubmitPromptResponses,
   V2ModelListErrors,
   V2ModelListResponses,
+  V2PermissionRequestListErrors,
+  V2PermissionRequestListResponses,
+  V2PermissionSavedListErrors,
+  V2PermissionSavedListResponses,
+  V2PermissionSavedRemoveErrors,
+  V2PermissionSavedRemoveResponses,
   V2ProviderGetErrors,
   V2ProviderGetResponses,
   V2ProviderListErrors,
@@ -260,6 +269,10 @@ import type {
   V2SessionListResponses,
   V2SessionMessagesErrors,
   V2SessionMessagesResponses,
+  V2SessionPermissionListErrors,
+  V2SessionPermissionListResponses,
+  V2SessionPermissionReplyErrors,
+  V2SessionPermissionReplyResponses,
   V2SessionPromptErrors,
   V2SessionPromptResponses,
   V2SessionWaitErrors,
@@ -3034,6 +3047,36 @@ export class Provider extends HeyApiClient {
     })
   }
 
+  /**
+   * Reset provider state
+   *
+   * Invalidate the cached provider state so the next provider list/get reloads credentials and config from disk.
+   */
+  public reset<ThrowOnError extends boolean = false>(
+    parameters?: {
+      directory?: string
+      workspace?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "query", key: "directory" },
+            { in: "query", key: "workspace" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<ProviderResetResponses, ProviderResetErrors, ThrowOnError>({
+      url: "/provider/reset",
+      ...options,
+      ...params,
+    })
+  }
+
   private _oauth?: Oauth
   get oauth(): Oauth {
     return (this._oauth ??= new Oauth({ client: this.client }))
@@ -4255,6 +4298,74 @@ export class Sync extends HeyApiClient {
   }
 }
 
+export class Permission2 extends HeyApiClient {
+  /**
+   * List session permission requests
+   *
+   * Retrieve pending permission requests owned by a session.
+   */
+  public list<ThrowOnError extends boolean = false>(
+    parameters: {
+      sessionID: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "path", key: "sessionID" }] }])
+    return (options?.client ?? this.client).get<
+      V2SessionPermissionListResponses,
+      V2SessionPermissionListErrors,
+      ThrowOnError
+    >({
+      url: "/api/session/{sessionID}/permission/request",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Reply to pending permission request
+   *
+   * Respond to a pending permission request owned by a session.
+   */
+  public reply<ThrowOnError extends boolean = false>(
+    parameters: {
+      sessionID: string
+      requestID: string
+      reply?: PermissionV2Reply
+      message?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams(
+      [parameters],
+      [
+        {
+          args: [
+            { in: "path", key: "sessionID" },
+            { in: "path", key: "requestID" },
+            { in: "body", key: "reply" },
+            { in: "body", key: "message" },
+          ],
+        },
+      ],
+    )
+    return (options?.client ?? this.client).post<
+      V2SessionPermissionReplyResponses,
+      V2SessionPermissionReplyErrors,
+      ThrowOnError
+    >({
+      url: "/api/session/{sessionID}/permission/request/{requestID}/reply",
+      ...options,
+      ...params,
+      headers: {
+        "Content-Type": "application/json",
+        ...options?.headers,
+        ...params.headers,
+      },
+    })
+  }
+}
+
 export class Session3 extends HeyApiClient {
   /**
    * List v2 sessions
@@ -4263,14 +4374,13 @@ export class Session3 extends HeyApiClient {
    */
   public list<ThrowOnError extends boolean = false>(
     parameters?: {
-      directory?: string
       workspace?: string
       limit?: number
       order?: "asc" | "desc"
-      path?: string
-      roots?: boolean | "true" | "false"
-      start?: number
       search?: string
+      directory?: string
+      project?: string
+      subpath?: string
       cursor?: string
     },
     options?: Options<never, ThrowOnError>,
@@ -4280,14 +4390,13 @@ export class Session3 extends HeyApiClient {
       [
         {
           args: [
-            { in: "query", key: "directory" },
             { in: "query", key: "workspace" },
             { in: "query", key: "limit" },
             { in: "query", key: "order" },
-            { in: "query", key: "path" },
-            { in: "query", key: "roots" },
-            { in: "query", key: "start" },
             { in: "query", key: "search" },
+            { in: "query", key: "directory" },
+            { in: "query", key: "project" },
+            { in: "query", key: "subpath" },
             { in: "query", key: "cursor" },
           ],
         },
@@ -4474,6 +4583,11 @@ export class Session3 extends HeyApiClient {
       ...params,
     })
   }
+
+  private _permission?: Permission2
+  get permission(): Permission2 {
+    return (this._permission ??= new Permission2({ client: this.client }))
+  }
 }
 
 export class Model extends HeyApiClient {
@@ -4557,6 +4671,94 @@ export class Provider2 extends HeyApiClient {
   }
 }
 
+export class Request extends HeyApiClient {
+  /**
+   * List pending permission requests
+   *
+   * Retrieve pending permission requests for a location.
+   */
+  public list<ThrowOnError extends boolean = false>(
+    parameters?: {
+      location?: {
+        directory?: string
+        workspace?: string
+      }
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "query", key: "location" }] }])
+    return (options?.client ?? this.client).get<
+      V2PermissionRequestListResponses,
+      V2PermissionRequestListErrors,
+      ThrowOnError
+    >({
+      url: "/api/permission/request",
+      ...options,
+      ...params,
+    })
+  }
+}
+
+export class Saved extends HeyApiClient {
+  /**
+   * List saved permissions
+   *
+   * Retrieve saved permissions, optionally filtered by project.
+   */
+  public list<ThrowOnError extends boolean = false>(
+    parameters?: {
+      projectID?: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "query", key: "projectID" }] }])
+    return (options?.client ?? this.client).get<
+      V2PermissionSavedListResponses,
+      V2PermissionSavedListErrors,
+      ThrowOnError
+    >({
+      url: "/api/permission/saved",
+      ...options,
+      ...params,
+    })
+  }
+
+  /**
+   * Remove saved permission
+   *
+   * Remove a saved permission by ID.
+   */
+  public remove<ThrowOnError extends boolean = false>(
+    parameters: {
+      id: string
+    },
+    options?: Options<never, ThrowOnError>,
+  ) {
+    const params = buildClientParams([parameters], [{ args: [{ in: "path", key: "id" }] }])
+    return (options?.client ?? this.client).delete<
+      V2PermissionSavedRemoveResponses,
+      V2PermissionSavedRemoveErrors,
+      ThrowOnError
+    >({
+      url: "/api/permission/saved/{id}",
+      ...options,
+      ...params,
+    })
+  }
+}
+
+export class Permission3 extends HeyApiClient {
+  private _request?: Request
+  get request(): Request {
+    return (this._request ??= new Request({ client: this.client }))
+  }
+
+  private _saved?: Saved
+  get saved(): Saved {
+    return (this._saved ??= new Saved({ client: this.client }))
+  }
+}
+
 export class V2 extends HeyApiClient {
   private _session?: Session3
   get session(): Session3 {
@@ -4571,6 +4773,11 @@ export class V2 extends HeyApiClient {
   private _provider?: Provider2
   get provider(): Provider2 {
     return (this._provider ??= new Provider2({ client: this.client }))
+  }
+
+  private _permission?: Permission3
+  get permission(): Permission3 {
+    return (this._permission ??= new Permission3({ client: this.client }))
   }
 }
 

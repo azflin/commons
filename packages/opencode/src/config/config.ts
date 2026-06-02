@@ -1,5 +1,6 @@
 import * as Log from "@opencode-ai/core/util/log"
 import { serviceUse } from "@opencode-ai/core/effect/service-use"
+import { COMMONS_GATEWAY_URL } from "../commons/const"
 import path from "path"
 import { pathToFileURL } from "url"
 import os from "os"
@@ -452,7 +453,49 @@ export const layer = Layer.effect(
         const file = globalConfigFile()
         if (!existsSync(file)) {
           yield* fs
-            .writeWithDirs(file, JSON.stringify({ $schema: "https://opencode.ai/config.json" }, null, 2))
+            .writeWithDirs(
+              file,
+              JSON.stringify(
+                {
+                  $schema: "https://opencode.ai/config.json",
+                  model: "commons/deepseek/deepseek-v4-flash",
+                  // Commons brand theme (cream/blue/yellow, transparent bg).
+                  // Seeded default only — users / project configs can still override.
+                  theme: "commons",
+                  // Commons ships its own binary; opencode's auto-updater would
+                  // replace it with upstream opencode. Disable it.
+                  autoupdate: false,
+                  enabled_providers: [
+                    "commons",
+                    "opencode",
+                    "openai",
+                    "anthropic",
+                    "google",
+                    "openrouter",
+                    "xai",
+                    "groq",
+                    "mistral",
+                    "github-copilot",
+                  ],
+                  provider: {
+                    commons: {
+                      name: "commons",
+                      npm: "@ai-sdk/openai-compatible",
+                      env: ["COMMONS_KEY"],
+                      options: {
+                        baseURL: `${COMMONS_GATEWAY_URL}/v1`,
+                      },
+                      models: {
+                        "deepseek/deepseek-v4-flash": { name: "DeepSeek V4 Flash" },
+                        "deepseek/deepseek-v4-pro": { name: "DeepSeek V4 Pro" },
+                      },
+                    },
+                  },
+                },
+                null,
+                2,
+              ),
+            )
             .pipe(Effect.catch(() => Effect.void))
         }
       }

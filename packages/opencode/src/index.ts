@@ -35,6 +35,7 @@ import { JsonMigration } from "@/storage/json-migration"
 import { Database } from "@opencode-ai/core/database/database"
 import { errorMessage } from "./util/error"
 import { PluginCommand } from "./cli/cmd/plug"
+import { CommonsCommand } from "./cli/cmd/commons"
 import { Heap } from "./cli/heap"
 import { drizzle } from "drizzle-orm/bun-sqlite"
 import { ensureProcessMetadata } from "@opencode-ai/core/util/opencode-process"
@@ -58,7 +59,7 @@ const args = hideBin(process.argv)
 
 function show(out: string) {
   const text = out.trimStart()
-  if (!text.startsWith("opencode ")) {
+  if (!text.startsWith("commons ")) {
     process.stderr.write(UI.logo() + EOL + EOL)
     process.stderr.write(text)
     return
@@ -68,7 +69,7 @@ function show(out: string) {
 
 const cli = yargs(args)
   .parserConfiguration({ "populate--": true })
-  .scriptName("opencode")
+  .scriptName("commons")
   .wrap(100)
   .help("help", "show help")
   .alias("help", "h")
@@ -178,6 +179,7 @@ const cli = yargs(args)
   .command(PrCommand)
   .command(SessionCommand)
   .command(PluginCommand)
+  .command(CommonsCommand)
   .command(DbCommand)
   .fail((msg, err) => {
     if (

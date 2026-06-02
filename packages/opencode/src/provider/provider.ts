@@ -1018,6 +1018,14 @@ export interface Interface {
     { providerID: ProviderV2.ID; modelID: ProviderV2.ModelID },
     DefaultModelError
   >
+  // COMMONS FORK: `reset` was a public interface method upstream once added
+  // (commit a87e7fb24 "Add endpoint to reset cached provider state") and then
+  // dropped during the ProviderID → ProviderV2.ID refactor. We rely on it: the
+  // forced-auth flow (cli/cmd/tui/routes/auth.tsx) calls `sdk.client.provider.reset()`
+  // immediately after saving creds so the in-process provider list sees the new
+  // Commons key without a TUI restart. The impl + route + SDK gen are all still
+  // present after the merge — we just need to keep the interface line ourselves.
+  readonly reset: () => Effect.Effect<void>
 }
 
 interface State {
@@ -1765,6 +1773,19 @@ export const layer = Layer.effect(
       const provider = s.providers[providerID]
       if (!provider) return undefined
 
+      const experimental = yield* plugin.trigger<"experimental.provider.small_model">(
+        "experimental.provider.small_model",
+        { provider: toPublicInfo(provider) },
+        { model: undefined },
+      )
+      if (experimental.model) {
+        return {
+          ...experimental.model,
+          id: ProviderV2.ModelID.make(experimental.model.id),
+          providerID: ProviderV2.ID.make(experimental.model.providerID),
+        }
+      }
+
       const defaultPriority = [
         "claude-haiku-4-5",
         "claude-haiku-4.5",
@@ -1842,7 +1863,11 @@ export const layer = Layer.effect(
       }
     })
 
-    return Service.of({ list, getProvider, getModel, getLanguage, closest, getSmallModel, defaultModel })
+    const reset = Effect.fn("Provider.reset")(function* () {
+      yield* InstanceState.invalidate(state)
+    })
+
+    return Service.of({ list, getProvider, getModel, getLanguage, closest, getSmallModel, defaultModel, reset })
   }),
 )
 

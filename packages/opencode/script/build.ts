@@ -50,6 +50,8 @@ const createEmbeddedWebUIBundle = async () => {
 
 const embeddedFileMap = skipEmbedWebUi ? null : await createEmbeddedWebUIBundle()
 
+// Commons fork: only ship the platforms we currently support. Add more here
+// (darwin-x64 for Intel Macs, linux-x64 for servers, etc.) as needed.
 const allTargets: {
   os: string
   arch: "arm64" | "x64"
@@ -57,59 +59,12 @@ const allTargets: {
   avx2?: false
 }[] = [
   {
-    os: "linux",
-    arch: "arm64",
-  },
-  {
-    os: "linux",
-    arch: "x64",
-  },
-  {
-    os: "linux",
-    arch: "x64",
-    avx2: false,
-  },
-  {
-    os: "linux",
-    arch: "arm64",
-    abi: "musl",
-  },
-  {
-    os: "linux",
-    arch: "x64",
-    abi: "musl",
-  },
-  {
-    os: "linux",
-    arch: "x64",
-    abi: "musl",
-    avx2: false,
-  },
-  {
     os: "darwin",
     arch: "arm64",
   },
   {
-    os: "darwin",
+    os: "linux",
     arch: "x64",
-  },
-  {
-    os: "darwin",
-    arch: "x64",
-    avx2: false,
-  },
-  {
-    os: "win32",
-    arch: "arm64",
-  },
-  {
-    os: "win32",
-    arch: "x64",
-  },
-  {
-    os: "win32",
-    arch: "x64",
-    avx2: false,
   },
 ]
 
@@ -141,9 +96,12 @@ if (!skipInstall) {
   await $`bun install --os="*" --cpu="*" @opentui/core@${pkg.dependencies["@opentui/core"]}`
   await $`bun install --os="*" --cpu="*" @parcel/watcher@${pkg.dependencies["@parcel/watcher"]}`
 }
+// Commons fork: distribute as "commons" rather than "opencode".
+const PRODUCT = "commons"
+
 for (const item of targets) {
   const name = [
-    pkg.name,
+    PRODUCT,
     // changing to win32 flags npm for some reason
     item.os === "win32" ? "windows" : item.os,
     item.arch,
@@ -178,8 +136,8 @@ for (const item of targets) {
       autoloadDotenv: false,
       autoloadTsconfig: true,
       autoloadPackageJson: true,
-      target: name.replace(pkg.name, "bun") as any,
-      outfile: `dist/${name}/bin/opencode`,
+      target: name.replace(PRODUCT, "bun") as any,
+      outfile: `dist/${name}/bin/${PRODUCT}`,
       execArgv: [`--user-agent=opencode/${Script.version}`, "--use-system-ca", "--"],
       windows: {},
     },
@@ -197,7 +155,7 @@ for (const item of targets) {
 
   // Smoke test: only run if binary is for current platform
   if (item.os === process.platform && item.arch === process.arch && !item.abi) {
-    const binaryPath = `dist/${name}/bin/opencode`
+    const binaryPath = `dist/${name}/bin/${PRODUCT}`
     console.log(`Running smoke test: ${binaryPath} --version`)
     try {
       const versionOutput = await $`${binaryPath} --version`.text()
