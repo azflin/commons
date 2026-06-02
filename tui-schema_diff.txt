@@ -1,0 +1,12 @@
+﻿diff --git a/packages/opencode/src/cli/cmd/tui/config/tui-schema.ts b/packages/opencode/src/cli/cmd/tui/config/tui-schema.ts
+index 3cdfe8770..08cd74095 100644
+--- a/packages/opencode/src/cli/cmd/tui/config/tui-schema.ts
++++ b/packages/opencode/src/cli/cmd/tui/config/tui-schema.ts
+@@ -85,4 +85,7 @@ export const TuiInfo = Schema.Struct({
+   scroll_acceleration: Schema.optional(ScrollAcceleration),
+   diff_style: Schema.optional(DiffStyle),
+   mouse: Schema.optional(Schema.Boolean).annotate({ description: "Enable or disable mouse capture (default: true)" }),
++  commons_theme_experimental: Schema.optional(Schema.Boolean).annotate({
++    description: "Enable experimental commons background animation layer",
++  }),
+ })

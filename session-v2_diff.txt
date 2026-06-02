@@ -1,0 +1,22 @@
+﻿diff --git a/packages/opencode/src/cli/cmd/tui/feature-plugins/system/session-v2.tsx b/packages/opencode/src/cli/cmd/tui/feature-plugins/system/session-v2.tsx
+index 8b2b2ed37..25f8b859e 100644
+--- a/packages/opencode/src/cli/cmd/tui/feature-plugins/system/session-v2.tsx
++++ b/packages/opencode/src/cli/cmd/tui/feature-plugins/system/session-v2.tsx
+@@ -263,7 +263,7 @@ function AgentSwitchedMessage(props: { message: SessionMessageAgentSwitched }) {
+   return (
+     <box paddingLeft={3} marginTop={1} flexShrink={0}>
+       <text>
+-        <span style={{ fg: local.agent.color(props.message.agent) }}>Γûú </span>
++        <span style={{ fg: local.agent.color(props.message.agent) }}>ΓôÆ </span>
+         <span style={{ fg: theme.textMuted }}>Switched agent to </span>
+         <span style={{ fg: theme.text }}>{Locale.titlecase(props.message.agent)}</span>
+       </text>
+@@ -353,7 +353,7 @@ function AssistantMessage(props: {
+       <Show when={props.last || final() || props.message.error}>
+         <box paddingLeft={3} flexShrink={0}>
+           <text marginTop={1}>
+-            <span style={{ fg: local.agent.color(props.message.agent) }}>Γûú </span>
++            <span style={{ fg: local.agent.color(props.message.agent) }}>ΓôÆ </span>
+             <span style={{ fg: theme.text }}>{Locale.titlecase(props.message.agent)}</span>
+             <span style={{ fg: theme.textMuted }}> ┬╖ {model()}</span>
+             <Show when={duration()}>

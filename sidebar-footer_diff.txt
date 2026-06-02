@@ -1,0 +1,17 @@
+﻿diff --git a/packages/opencode/src/cli/cmd/tui/feature-plugins/sidebar/footer.tsx b/packages/opencode/src/cli/cmd/tui/feature-plugins/sidebar/footer.tsx
+index 1bdffa486..eccf61ef9 100644
+--- a/packages/opencode/src/cli/cmd/tui/feature-plugins/sidebar/footer.tsx
++++ b/packages/opencode/src/cli/cmd/tui/feature-plugins/sidebar/footer.tsx
+@@ -65,11 +65,7 @@ function View(props: { api: TuiPluginApi }) {
+         <span style={{ fg: theme().text }}>{path().name}</span>
+       </text>
+       <text fg={theme().textMuted}>
+-        <span style={{ fg: theme().success }}>ΓÇó</span> <b>Open</b>
+-        <span style={{ fg: theme().text }}>
+-          <b>Code</b>
+-        </span>{" "}
+-        <span>{props.api.app.version}</span>
++        <span style={{ fg: theme().success }}>ΓÇó</span> <b>Commons</b>
+       </text>
+     </box>
+   )

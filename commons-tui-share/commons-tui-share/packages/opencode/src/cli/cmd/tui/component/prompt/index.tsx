@@ -73,8 +73,6 @@ export type PromptProps = {
   hint?: JSX.Element
   right?: JSX.Element
   showPlaceholder?: boolean
-  hideFooter?: boolean
-  contentPaddingLeft?: number
   placeholders?: {
     normal?: string[]
     shell?: string[]
@@ -1483,7 +1481,7 @@ export function Prompt(props: PromptProps) {
           width="100%"
         >
           <box
-            paddingLeft={props.contentPaddingLeft ?? 1}
+            paddingLeft={1}
             paddingRight={2}
             paddingTop={1}
             flexShrink={0}
@@ -1710,8 +1708,7 @@ export function Prompt(props: PromptProps) {
             </Switch>
           </box>
         </Show>
-        <Show when={!props.hideFooter}>
-          <box width="100%" flexDirection="row" justifyContent="space-between" flexShrink={0}>
+        <box width="100%" flexDirection="row" justifyContent="space-between" flexShrink={0}>
           <box flexShrink={0} flexDirection="row" gap={1}>
             <Show when={local.agent.current()} fallback={props.hint ?? <text />}>
               {(agent) => (
@@ -1765,7 +1762,6 @@ export function Prompt(props: PromptProps) {
             </box>
           </Show>
         </box>
-        </Show>
       </box>
       <Autocomplete
         sessionID={props.sessionID}

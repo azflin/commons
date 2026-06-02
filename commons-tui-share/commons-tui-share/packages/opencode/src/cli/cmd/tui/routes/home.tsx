@@ -1,5 +1,5 @@
 import { Prompt, type PromptRef } from "@tui/component/prompt"
-import { createEffect, createMemo, createSignal, onMount, Show } from "solid-js"
+import { createEffect, createMemo, createSignal, onMount } from "solid-js"
 import { Logo } from "../component/logo"
 import { useSync } from "../context/sync"
 import { Toast } from "../ui/toast"
@@ -12,8 +12,15 @@ import { useEditorContext } from "@tui/context/editor"
 import { useTerminalDimensions } from "@opentui/solid"
 import { useTuiConfig } from "../context/tui-config"
 import { useTheme } from "@tui/context/theme"
-import { useCommandShortcut } from "../keymap"
-import { Locale } from "@/util/locale"
+
+const COMMONS_LOGO = [
+  "                                                                               ",
+  " ,p6\"bo   ,pW\"Wq.`7MMpMMMb.pMMMb.  `7MMpMMMb.pMMMb.  ,pW\"Wq.`7MMpMMMb.  ,pP\"Ybd",
+  "6M'  OO  6W'   `Wb MM    MM    MM    MM    MM    MM 6W'   `Wb MM    MM  8I   `\"",
+  "8M       8M     M8 MM    MM    MM    MM    MM    MM 8M     M8 MM    MM  `YMMMa.",
+  "YM.    , YA.   ,A9 MM    MM    MM    MM    MM    MM YA.   ,A9 MM    MM  L.   I8",
+  " YMbmd'   `Ybmd9'.JMML  JMML  JMML..JMML  JMML  JMML.`Ybmd9'.JMML  JMML.M9mmmP'",
+]
 
 let once = false
 const placeholder = {
@@ -32,8 +39,6 @@ export function Home() {
   const dimensions = useTerminalDimensions()
   const tuiConfig = useTuiConfig()
   const { theme } = useTheme()
-  const agentShortcut = useCommandShortcut("agent.cycle")
-  const paletteShortcut = useCommandShortcut("command.palette.show")
   const promptMaxWidth = createMemo(() => {
     const configured = tuiConfig.prompt?.max_width
     if (configured === "auto") return Math.max(75, Math.floor(dimensions().width * 0.7))
@@ -77,12 +82,19 @@ export function Home() {
         <box flexGrow={1} minHeight={0} />
         {tuiConfig.commons_theme_experimental ? (
           <>
-            <box height={2} minHeight={2} flexShrink={0} />
-            <box height={10} minHeight={10} flexShrink={0} alignItems="center" />
-            <box height={0} minHeight={0} flexShrink={1} />
+            <box flexShrink={0} alignItems="center">
+              <TuiPluginRuntime.Slot name="home_logo" mode="replace">
+                <box flexDirection="column" alignItems="center">
+                  {COMMONS_LOGO.map((line) => (
+                    <text content={line} style={{ fg: "#061BFF" }} />
+                  ))}
+                </box>
+              </TuiPluginRuntime.Slot>
+            </box>
+            <box height={2} minHeight={0} flexShrink={1} />
             <box width="100%" maxWidth={promptMaxWidth()} zIndex={1000} flexShrink={0}>
               <TuiPluginRuntime.Slot name="home_prompt" mode="replace" ref={bind}>
-                <Prompt ref={bind} right={<TuiPluginRuntime.Slot name="home_prompt_right" />} placeholders={placeholder} hideFooter contentPaddingLeft={4} />
+                <Prompt ref={bind} right={<TuiPluginRuntime.Slot name="home_prompt_right" />} placeholders={placeholder} />
               </TuiPluginRuntime.Slot>
             </box>
           </>
@@ -106,45 +118,9 @@ export function Home() {
         <box flexGrow={1} minHeight={0} />
         <Toast />
       </box>
-      {tuiConfig.commons_theme_experimental ? (
-        <box
-          position="absolute"
-          bottom={0}
-          left={0}
-          width="100%"
-          flexDirection="row"
-          justifyContent="space-between"
-          paddingLeft={2}
-          paddingRight={2}
-          paddingBottom={1}
-        >
-          <box flexShrink={0} flexDirection="row" gap={1}>
-            <Show when={local.agent.current()}>
-              {(agent) => (
-                <text>
-                  <span style={{ fg: theme.text }}>
-                    {Locale.titlecase(agent().name)}
-                  </span>
-                  <Show when={local.model.parsed().model}>
-                    <span style={{ fg: theme.textMuted }}> · </span>
-                    <span style={{ fg: theme.textMuted }}>
-                      {local.model.parsed().model}
-                    </span>
-                  </Show>
-                </text>
-              )}
-            </Show>
-          </box>
-          <box gap={2} flexDirection="row" flexShrink={0}>
-            <text fg={theme.text}>
-              {agentShortcut()} <span style={{ fg: theme.textMuted }}>agents</span>
-            </text>
-            <text fg={theme.text}>
-              {paletteShortcut()} <span style={{ fg: theme.textMuted }}>commands</span>
-            </text>
-          </box>
-        </box>
-      ) : null}
+      <box width="100%" flexShrink={0}>
+        <TuiPluginRuntime.Slot name="home_footer" mode="single_winner" />
+      </box>
     </>
   )
 }

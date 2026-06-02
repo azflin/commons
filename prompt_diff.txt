@@ -1,0 +1,315 @@
+﻿git : warning: in the working copy of 'packages/opencode/src/cli/cmd/tui/component/prompt/index.tsx', LF will be 
+replaced by CRLF the next time Git touches it
+At line:1 char:1
++ git -C "C:\Users\andre\Downloads\open_terminal" diff packages/opencod ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (warning: in the... Git touches it:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+diff --git a/packages/opencode/src/cli/cmd/tui/component/prompt/index.tsx b/packages/opencode/src/cli/cmd/tui/component/prompt/index.tsx
+index d2877dd77..df445220a 100644
+--- a/packages/opencode/src/cli/cmd/tui/component/prompt/index.tsx
++++ b/packages/opencode/src/cli/cmd/tui/component/prompt/index.tsx
+@@ -1479,15 +1479,9 @@ export function Prompt(props: PromptProps) {
+       <box ref={(r: BoxRenderable) => (anchor = r)} visible={props.visible !== false} width="100%">
+         <box
+           width="100%"
+-          border={["left"]}
+-          borderColor={borderHighlight()}
+-          customBorderChars={{
+-            ...SplitBorder.customBorderChars,
+-            bottomLeft: "Γò╣",
+-          }}
+         >
+           <box
+-            paddingLeft={2}
++            paddingLeft={1}
+             paddingRight={2}
+             paddingTop={1}
+             flexShrink={0}
+@@ -1569,37 +1563,6 @@ export function Prompt(props: PromptProps) {
+               syntaxStyle={syntax()}
+             />
+             <box flexDirection="row" flexShrink={0} paddingTop={1} gap={1} justifyContent="space-between">
+-              <box flexDirection="row" gap={1}>
+-                <Show when={local.agent.current()} fallback={<box height={1} />}>
+-                  {(agent) => (
+-                    <>
+-                      <text fg={fadeColor(highlight(), agentMetaAlpha())}>
+-                        {store.mode === "shell" ? "Shell" : Locale.titlecase(agent().name)}
+-                      </text>
+-                      <Show when={store.mode === "normal"}>
+-                        <box flexDirection="row" gap={1}>
+-                          <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>┬╖</text>
+-                          <text
+-                            flexShrink={0}
+-                            fg={fadeColor(leader() ? theme.textMuted : theme.text, modelMetaAlpha())}
+-                          >
+-                            {local.model.parsed().model}
+-                          </text>
+-                          <text fg={fadeColor(theme.textMuted, modelMetaAlpha())}>{currentProviderLabel()}</text>
+-                          <Show when={showVariant()}>
+-                            <text fg={fadeColor(theme.textMuted, variantMetaAlpha())}>┬╖</text>
+-                            <text>
+-                              <span style={{ fg: fadeColor(theme.warning, variantMetaAlpha()), bold: true }}>
+-                                {local.model.variant.current()}
+-                              </span>
+-                            </text>
+-                          </Show>
+-                        </box>
+-                      </Show>
+-                    </>
+-                  )}
+-                </Show>
+-              </box>
+               <Show when={hasRightContent()}>
+                 <box flexDirection="row" gap={1} alignItems="center">
+                   {props.right}
+@@ -1634,127 +1597,137 @@ export function Prompt(props: PromptProps) {
+             }
+           />
+         </box>
+-        <box width="100%" flexDirection="row" justifyContent="space-between">
+-          <Switch>
+-            <Match when={status().type !== "idle"}>
+-              <box
+-                flexDirection="row"
+-                gap={1}
+-                flexGrow={1}
+-                justifyContent={status().type === "retry" ? "space-between" : "flex-start"}
+-              >
+-                <box flexShrink={0} flexDirection="row" gap={1}>
+-                  <box marginLeft={1}>
+-                    <Show when={kv.get("animations_enabled", true)} fallback={<text fg={theme.textMuted}>[Γï»]</text>}>
+-                      <spinner color={spinnerDef().color} frames={spinnerDef().frames} interval={40} />
+-                    </Show>
+-                  </box>
+-                  <box flexDirection="row" gap={1} flexShrink={0}>
+-                    {(() => {
+-                      const retry = createMemo(() => {
+-                        const s = status()
+-                        if (s.type !== "retry") return
+-                        return s
+-                      })
+-                      const message = createMemo(() => {
+-                        const r = retry()
+-                        if (!r) return
+-                        if (r.message.includes("exceeded your current quota") && r.message.includes("gemini"))
+-                          return "gemini is way too hot right now"
+-                        if (r.message.length > 80) return r.message.slice(0, 80) + "..."
+-                        return r.message
+-                      })
+-                      const isTruncated = createMemo(() => {
+-                        const r = retry()
+-                        if (!r) return false
+-                        return r.message.length > 120
+-                      })
+-                      const [seconds, setSeconds] = createSignal(0)
+-                      onMount(() => {
+-                        const timer = setInterval(() => {
+-                          const next = retry()?.next
+-                          if (next) setSeconds(Math.round((next - Date.now()) / 1000))
+-                        }, 1000)
+-
+-                        onCleanup(() => {
+-                          clearInterval(timer)
++        <Show when={status().type !== "idle" || warpNotice() || workspaceLabel()}>
++          <box width="100%" flexDirection="row" flexShrink={0} paddingLeft={3} paddingRight={3}>
++            <Switch>
++              <Match when={status().type !== "idle"}>
++                <box flexDirection="row" gap={1} flexShrink={0}>
++                  <box flexShrink={0} flexDirection="row" gap={1}>
++                    <box marginLeft={1}>
++                      <Show when={kv.get("animations_enabled", true)} fallback={<text fg={theme.textMuted}>[Γï»]</text>}>
++                        <spinner color={spinnerDef().color} frames={spinnerDef().frames} interval={40} />
++                      </Show>
++                    </box>
++                    <box flexDirection="row" gap={1} flexShrink={0}>
++                      {(() => {
++                        const retry = createMemo(() => {
++                          const s = status()
++                          if (s.type !== "retry") return
++                          return s
++                        })
++                        const message = createMemo(() => {
++                          const r = retry()
++                          if (!r) return
++                          if (r.message.includes("exceeded your current quota") && r.message.includes("gemini"))
++                            return "gemini is way too hot right now"
++                          if (r.message.length > 80) return r.message.slice(0, 80) + "..."
++                          return r.message
++                        })
++                        const isTruncated = createMemo(() => {
++                          const r = retry()
++                          if (!r) return false
++                          return r.message.length > 120
+                         })
+-                      })
+-                      const handleMessageClick = () => {
+-                        const r = retry()
+-                        if (!r) return
+-                        if (isTruncated()) {
+-                          void DialogAlert.show(dialog, "Retry Error", r.message)
++                        const [seconds, setSeconds] = createSignal(0)
++                        onMount(() => {
++                          const timer = setInterval(() => {
++                            const next = retry()?.next
++                            if (next) setSeconds(Math.round((next - Date.now()) / 1000))
++                          }, 1000)
++                          onCleanup(() => {
++                            clearInterval(timer)
++                          })
++                        })
++                        const handleMessageClick = () => {
++                          const r = retry()
++                          if (!r) return
++                          if (isTruncated()) {
++                            void DialogAlert.show(dialog, "Retry Error", r.message)
++                          }
++                        }
++                        const retryText = () => {
++                          const r = retry()
++                          if (!r) return ""
++                          const baseMessage = message()
++                          const truncatedHint = isTruncated() ? " (click to expand)" : ""
++                          const duration = formatDuration(seconds())
++                          const retryInfo = ` [retrying ${duration ? `in ${duration} ` : ""}attempt #${r.attempt}]`
++                          return baseMessage + truncatedHint + retryInfo
+                         }
+-                      }
+-
+-                      const retryText = () => {
+-                        const r = retry()
+-                        if (!r) return ""
+-                        const baseMessage = message()
+-                        const truncatedHint = isTruncated() ? " (click to expand)" : ""
+-                        const duration = formatDuration(seconds())
+-                        const retryInfo = ` [retrying ${duration ? `in ${duration} ` : ""}attempt #${r.attempt}]`
+-                        return baseMessage + truncatedHint + retryInfo
+-                      }
+-
+-                      return (
+-                        <Show when={retry()}>
+-                          <box onMouseUp={handleMessageClick}>
+-                            <text fg={theme.error}>{retryText()}</text>
+-                          </box>
+-                        </Show>
+-                      )
+-                    })()}
++                        return (
++                          <Show when={retry()}>
++                            <box onMouseUp={handleMessageClick}>
++                              <text fg={theme.error}>{retryText()}</text>
++                            </box>
++                          </Show>
++                        )
++                      })()}
++                    </box>
+                   </box>
++                  <text fg={store.interrupt > 0 ? theme.primary : theme.text}>
++                    esc{" "}
++                    <span style={{ fg: store.interrupt > 0 ? theme.primary : theme.textMuted }}>
++                      {store.interrupt > 0 ? "again to interrupt" : "interrupt"}
++                    </span>
++                  </text>
+                 </box>
+-                <text fg={store.interrupt > 0 ? theme.primary : theme.text}>
+-                  esc{" "}
+-                  <span style={{ fg: store.interrupt > 0 ? theme.primary : theme.textMuted }}>
+-                    {store.interrupt > 0 ? "again to interrupt" : "interrupt"}
+-                  </span>
+-                </text>
+-              </box>
+-            </Match>
+-            <Match when={warpNotice()}>
+-              {(notice) => (
+-                <box paddingLeft={3}>
++              </Match>
++              <Match when={warpNotice()}>
++                {(notice) => (
+                   <text fg={theme.accent}>{notice()}</text>
+-                </box>
+-              )}
+-            </Match>
+-            <Match when={workspaceLabel()}>
+-              {(workspace) => (
+-                <box paddingLeft={3} flexDirection="row" gap={1}>
+-                  <Show when={workspaceCreating()}>
+-                    <Spinner color={theme.accent} />
+-                  </Show>
+-                  <text fg={workspaceCreating() ? theme.accent : theme.text}>
+-                    {(() => {
+-                      const item = workspace()
+-                      if (item.type === "new") {
+-                        if (workspaceCreating())
+-                          return `Creating ${item.workspaceType}${".".repeat(workspaceCreatingDots())}`
++                )}
++              </Match>
++              <Match when={workspaceLabel()}>
++                {(workspace) => (
++                  <box flexDirection="row" gap={1}>
++                    <Show when={workspaceCreating()}>
++                      <Spinner color={theme.accent} />
++                    </Show>
++                    <text fg={workspaceCreating() ? theme.accent : theme.text}>
++                      {(() => {
++                        const item = workspace()
++                        if (item.type === "new") {
++                          if (workspaceCreating())
++                            return `Creating ${item.workspaceType}${".".repeat(workspaceCreatingDots())}`
++                          return (
++                            <>
++                              Workspace <span style={{ fg: theme.textMuted }}>(new {item.workspaceType})</span>
++                            </>
++                          )
++                        }
+                         return (
+                           <>
+-                            Workspace <span style={{ fg: theme.textMuted }}>(new {item.workspaceType})</span>
++                            Workspace <span style={{ fg: theme.textMuted }}>{item.workspaceName}</span>
+                           </>
+                         )
+-                      }
+-                      return (
+-                        <>
+-                          Workspace <span style={{ fg: theme.textMuted }}>{item.workspaceName}</span>
+-                        </>
+-                      )
+-                    })()}
+-                  </text>
+-                </box>
++                      })()}
++                    </text>
++                  </box>
++                )}
++              </Match>
++            </Switch>
++          </box>
++        </Show>
++        <box width="100%" flexDirection="row" justifyContent="space-between" flexShrink={0}>
++          <box flexShrink={0} flexDirection="row" gap={1}>
++            <Show when={local.agent.current()} fallback={props.hint ?? <text />}>
++              {(agent) => (
++                <text>
++                  <span style={{ fg: fadeColor(highlight(), modelMetaAlpha()) }}>
++                    {Locale.titlecase(agent().name)}
++                  </span>
++                  <Show when={store.mode === "normal"}>
++                    <span style={{ fg: fadeColor(theme.textMuted, modelMetaAlpha()) }}> ┬╖ </span>
++                    <span style={{ fg: fadeColor(theme.textMuted, modelMetaAlpha()) }}>
++                      {local.model.parsed().model}
++                    </span>
++                  </Show>
++                </text>
+               )}
+-            </Match>
+-            <Match when={true}>{props.hint ?? <text />}</Match>
+-          </Switch>
++            </Show>
++          </box>
+           <Show when={status().type !== "retry"}>
+-            <box gap={2} flexDirection="row">
++            <box gap={2} flexDirection="row" flexShrink={0}>
+               <Show when={editorContextLabelState() !== "none" ? editorFileLabelDisplay() : undefined}>
+                 {(file) => (
+                   <text fg={editorContextLabelState() === "pending" ? theme.secondary : theme.textMuted}>{file()}</text>

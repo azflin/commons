@@ -1,0 +1,67 @@
+﻿diff --git a/packages/opencode/src/cli/cmd/tui/app.tsx b/packages/opencode/src/cli/cmd/tui/app.tsx
+index 95321f71b..576bda1d7 100644
+--- a/packages/opencode/src/cli/cmd/tui/app.tsx
++++ b/packages/opencode/src/cli/cmd/tui/app.tsx
+@@ -67,6 +67,7 @@ import { createTuiApi } from "@/cli/cmd/tui/plugin/api"
+ import type { RouteMap } from "@/cli/cmd/tui/plugin/api"
+ import { createTuiAttention } from "@/cli/cmd/tui/attention"
+ import { FormatError, FormatUnknownError } from "@/cli/error"
++import { CommonsBg } from "@tui/component/commons-bg"
+ import { CommandPaletteDialog } from "./component/command-palette"
+ import {
+   COMMAND_PALETTE_COMMAND,
+@@ -455,29 +456,40 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
+   createEffect(() => {
+     if (!terminalTitleEnabled() || Flag.OPENCODE_DISABLE_TERMINAL_TITLE) return
+ 
++    const brand = tuiConfig.commons_theme_experimental ? "Commons" : "OpenCode"
++    const brandShort = tuiConfig.commons_theme_experimental ? "Commons" : "OC"
++
+     if (route.data.type === "home") {
+-      renderer.setTerminalTitle("OpenCode")
++      renderer.setTerminalTitle(brand)
+       return
+     }
+ 
+     if (route.data.type === "session") {
+       const session = sync.session.get(route.data.sessionID)
+       if (!session || SessionApi.isDefaultTitle(session.title)) {
+-        renderer.setTerminalTitle("OpenCode")
++        renderer.setTerminalTitle(brand)
+         return
+       }
+ 
+       const title = session.title.length > 40 ? session.title.slice(0, 37) + "..." : session.title
+-      renderer.setTerminalTitle(`OC | ${title}`)
++      renderer.setTerminalTitle(`${brandShort} | ${title}`)
+       return
+     }
+ 
+     if (route.data.type === "plugin") {
+-      renderer.setTerminalTitle(`OC | ${route.data.id}`)
++      renderer.setTerminalTitle(`${brandShort} | ${route.data.id}`)
+     }
+   })
+ 
+   const args = useArgs()
++
++  // Auto-select commons theme when commons_theme_experimental is enabled
++  createEffect(() => {
++    if (tuiConfig.commons_theme_experimental && themeState.selected !== "commons") {
++      themeState.set("commons")
++    }
++  })
++
+   onMount(() => {
+     batch(() => {
+       if (args.agent) local.agent.set(args.agent)
+@@ -1094,6 +1106,9 @@ function App(props: { onSnapshot?: () => Promise<string[]> }) {
+         </box>
+         <TuiPluginRuntime.Slot name="app" />
+       </Show>
++      <Show when={tuiConfig.commons_theme_experimental}>
++        <CommonsBg />
++      </Show>
+       <StartupLoading ready={ready} />
+     </box>
+   )

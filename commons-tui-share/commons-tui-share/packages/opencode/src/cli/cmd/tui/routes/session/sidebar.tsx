@@ -4,7 +4,7 @@ import { createMemo, Show } from "solid-js"
 import { useTheme } from "../../context/theme"
 import { useTuiConfig } from "../../context/tui-config"
 import { RGBA } from "@opentui/core"
-import { InstallationChannel } from "@opencode-ai/core/installation/version"
+import { InstallationChannel, InstallationVersion } from "@opencode-ai/core/installation/version"
 import { TuiPluginRuntime } from "@/cli/cmd/tui/plugin/runtime"
 
 import { getScrollAcceleration } from "../../util/scroll"
@@ -90,7 +90,17 @@ export function Sidebar(props: { sessionID: string; overlay?: boolean }) {
           <TuiPluginRuntime.Slot name="sidebar_footer" mode="single_winner" session_id={props.sessionID}>
             <text fg={theme.textMuted}>
               <span style={{ fg: theme.success }}>•</span>{" "}
-              <b>Commons</b>
+              {tuiConfig.commons_theme_experimental ? (
+                <b>Commons</b>
+              ) : (
+                <>
+                  <b>Open</b>
+                  <span style={{ fg: theme.text }}>
+                    <b>Code</b>
+                  </span>{" "}
+                </>
+              )}
+              <span>{InstallationVersion}</span>
             </text>
           </TuiPluginRuntime.Slot>
         </box>
