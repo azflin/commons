@@ -48,6 +48,9 @@ This fork (Commons) modifies upstream opencode. Most customization lives in **ne
 ### Cosmetic CLI string branding (low-priority — a merge reverting these is harmless, not in the must-pass checklist)
 User-visible `opencode`→`commons` swaps in help/output strings only: `cli/error.ts` (MCP-auth note + `commons models` hint), `cli/cmd/pr.ts:10` (describe), `cli/cmd/uninstall.ts:27` (describe), `cli/cmd/mcp.ts` (outro hint + placeholder). Deliberately NOT touched (functional/infra): all of `github.ts`, `account.ts`/`agent.ts` URLs+dirs, `network.ts` mDNS `opencode.local`, `error.ts:68` `opencode.json` filename, and `pr.ts` spawning the `opencode` binary (a real fork bug, deferred).
 
+### `packages/opencode/src/provider/provider.ts` — `reset` on Provider Interface (NEW: hot file as of 2026-06-02 merge)
+- Upstream added `reset` to the `Provider.Interface`, then dropped it during a `ProviderID → ProviderV2.ID` refactor. **We rely on it**: `routes/auth.tsx:48` calls `sdk.client.provider.reset({}, ...)` immediately after `auth.set()` so the in-process provider list sees the new Commons key without a TUI restart. The impl (`const reset = Effect.fn("Provider.reset")(...)`, ~line 1865), the `Service.of({..., reset})` registration, the route handler in `httpapi/handlers/provider.ts`, the route registration in `httpapi/groups/provider.ts`, the SDK gen `/provider/reset`, and `openapi.json` are all upstream-preserved — only the public interface line keeps disappearing on refactors. Keep `readonly reset: () => Effect.Effect<void>` at the end of the Interface block. Comment in-file explains why on conflict.
+
 ### typecheck shims (Provider interface gained `reset`)
 - `packages/opencode/test/fake/provider.ts` — `reset:` stub.
 
@@ -79,7 +82,8 @@ grep -c 'BootScreen' packages/opencode/src/cli/cmd/tui/routes/home.tsx   # expec
 grep -c 'bootDismissed' packages/opencode/src/cli/cmd/tui/routes/home.tsx # expect >=3 (signal + intercept guard + Show when)
 grep -c 'BootScreen' packages/opencode/src/cli/cmd/tui/routes/auth.tsx   # expect 2 (import + mount)
 grep -c 'statusFor' packages/opencode/src/cli/cmd/tui/routes/auth.tsx    # expect 2 (decl + call)
-grep -c 'COMMONS\|commons' packages/opencode/src/cli/logo.ts             # logo art present (don't let a merge revert it)
+grep -cF '▄█████▄' packages/opencode/src/cli/logo.ts                     # expect >=3 — our COMMONS half-block wordmark uses this glyph cluster; if 0, upstream's logo overwrote ours
+grep -cF 'reset: () => Effect.Effect<void>' packages/opencode/src/provider/provider.ts # expect 1 — our reset Interface line; auto-merge keeps dropping it on ProviderV2.ID refactors
 grep -c 'commons' packages/opencode/src/cli/cmd/tui/context/theme.tsx    # import + map entry + default fallback (kv.get + guard)
 grep -c '"commons"' packages/opencode/src/config/config.ts               # theme + model + provider refs
 ```
